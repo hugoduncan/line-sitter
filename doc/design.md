@@ -768,6 +768,53 @@ Indent rules can be extended via configuration:
 
 This allows project-specific macros to use appropriate indent rules.
 
+#### Pair Grouping
+
+Certain forms contain semantic pairs that should stay together when
+breaking:
+
+- **Maps** - key-value pairs (`:key value`)
+- **Binding vectors** - symbol-expression pairs (`sym expr`)
+- **cond/case clauses** - test-result pairs
+
+When breaking these forms, pairs are kept on the same line when the pair
+fits within the limit. If a pair exceeds the limit, only then does the
+second element move to its own line.
+
+**Map breaking:**
+```clojure
+;; Before
+{:name "Alice" :age 30 :email "alice@example.com"}
+
+;; After - pairs stay together
+{:name "Alice"
+  :age 30
+  :email "alice@example.com"}
+```
+
+**Binding vector breaking:**
+```clojure
+;; Before
+(let [user (fetch-user id) perms (get-perms user) role (:role user)] ...)
+
+;; After - binding pairs stay together
+(let [user (fetch-user id)
+      perms (get-perms user)
+      role (:role user)]
+  ...)
+```
+
+**When a pair itself exceeds the limit:**
+```clojure
+;; If :email pair exceeds limit, value moves to next line
+{:name "Alice"
+  :age 30
+  :email
+    "alice-with-very-long-email@example.com"}
+```
+
+Pair grouping is applied automatically and is not configurable.
+
 ### Breakable vs Unbreakable Nodes
 
 **Breakable nodes** (can have children placed on separate lines):
@@ -921,7 +968,7 @@ The user can apply the ignore mechanism if desired.
 
 ### Example 4: Map Literals
 
-Maps break with each key-value pair, keeping pairs together when possible.
+Maps break with key-value pairs kept together on the same line when possible.
 
 **Before (limit: 50):**
 ```clojure
@@ -936,9 +983,9 @@ Maps break with each key-value pair, keeping pairs together when possible.
   :city "Boston"}
 ```
 
-Note: Key-value pairs are not kept on the same line by default. Each
-element (whether key or value) gets its own line. Future enhancement
-could keep pairs together.
+Key-value pairs stay together: each pair (key and its value) remains on
+the same line when the pair fits within the limit. If a pair exceeds the
+limit, only then does the value move to its own line.
 
 ### Example 5: Metadata Preservation
 
@@ -1147,8 +1194,8 @@ A `let` form with multiple bindings that exceed the limit.
 ```
 
 The `:binding` indent rule keeps the bindings vector on the first line
-with `let`. The vector's children are broken with 2-space indent from
-the opening bracket. The body fits on one line.
+with `let`. Binding pairs (symbol and expression) stay together on each
+line. The body fits on one line.
 
 ### Example 3: Map Literal
 
@@ -1169,8 +1216,9 @@ A map literal with many key-value pairs.
   :active true}
 ```
 
-Each element (key or value) gets its own line with 2-space indent from
-the opening brace.
+Key-value pairs stay together on the same line. Each pair gets 2-space
+indent from the opening brace. If a pair itself exceeds the limit, the
+value moves to its own line.
 
 ### Example 4: Threading Macro
 
