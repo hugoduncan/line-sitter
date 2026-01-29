@@ -455,3 +455,116 @@ directory tree.
     (if config-file
       (merge default-config (edn/read-string (slurp config-file)))
       default-config)))
+
+## CLI Interface
+
+line-sitter provides a command-line interface for checking and fixing
+line length violations in Clojure source files.
+
+### Command Syntax
+
+```
+line-sitter [options] [paths...]
+```
+
+**Arguments:**
+- `paths...` - Files or directories to process (default: current directory)
+
+When a directory is given, line-sitter recursively finds files matching
+the configured extensions.
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--check` | Report violations and exit with code 1 if any found (default mode) |
+| `--fix` | Rewrite files in place to fix violations |
+| `--stdout` | Output reformatted content to stdout instead of modifying files |
+| `--line-length N` | Override configured line length (takes precedence over config file) |
+| `--help` | Show usage information and exit |
+
+**Mode precedence:** If multiple modes are specified, the last one wins.
+However, `--help` always takes precedence and shows help regardless of
+other options.
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success - no violations found (check mode) or files processed successfully (fix/stdout mode) |
+| 1 | Violations found (check mode only) |
+| 2 | Error - invalid arguments, file not found, parse error, or other failures |
+
+### Usage Examples
+
+**Check current directory for violations:**
+```bash
+line-sitter --check
+```
+
+**Check specific files:**
+```bash
+line-sitter --check src/myproject/core.clj src/myproject/util.clj
+```
+
+**Check a directory recursively:**
+```bash
+line-sitter --check src/
+```
+
+**Fix all files in place:**
+```bash
+line-sitter --fix src/
+```
+
+**Preview fixes without modifying files:**
+```bash
+line-sitter --stdout src/myproject/core.clj
+```
+
+**Use a different line length:**
+```bash
+line-sitter --check --line-length 120 src/
+```
+
+**CI integration (exits 1 if violations found):**
+```bash
+line-sitter --check src/ test/ || echo "Line length violations found"
+```
+
+### Output Format
+
+**Check mode:** Reports violations to stderr in the format:
+```
+path/to/file.clj:42: line exceeds 80 characters (actual: 95)
+```
+
+**Fix mode:** Reports files modified to stdout:
+```
+Fixed: path/to/file.clj (3 lines)
+```
+
+**Stdout mode:** Outputs the reformatted file content to stdout. If
+multiple files are specified, each file's content is preceded by a
+comment header:
+```clojure
+;;; path/to/file.clj
+(ns myproject.core)
+...
+```
+
+### Default Behavior
+
+When invoked without arguments:
+```bash
+line-sitter
+```
+
+This is equivalent to:
+```bash
+line-sitter --check .
+```
+
+The tool processes all files matching configured extensions in the
+current directory and its subdirectories, reporting any line length
+violations.
