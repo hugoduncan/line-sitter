@@ -1047,8 +1047,8 @@ A `let` form with multiple bindings that exceed the limit.
 ```
 
 The `:binding` indent rule keeps the bindings vector on the first line
-with `let`. The vector's children are broken with 6-space indent
-(aligning with the first binding). The body fits on one line.
+with `let`. The vector's children are broken with 2-space indent from
+the opening bracket. The body fits on one line.
 
 ### Example 3: Map Literal
 
