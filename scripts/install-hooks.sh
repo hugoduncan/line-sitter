@@ -34,7 +34,7 @@ STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(clj
 if [ -n "${STAGED_FILES}" ]; then
     echo "Formatting staged files..."
     # shellcheck disable=SC2086
-    bb format
+    cljfmt fix ${STAGED_FILES}
 
     echo "Re-staging formatted files..."
     # shellcheck disable=SC2086
