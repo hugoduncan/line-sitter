@@ -1,0 +1,64 @@
+# line-sitter
+
+A tool to reformat Clojure code to enforce a maximum line length.
+
+Uses tree-sitter (via jtreesitter Java bindings) to understand the
+structure of the code, enabling structure-aware line breaking rather
+than naive text wrapping.
+
+## Development
+
+### REPL
+
+Start an nREPL server:
+```bash
+clojure -M:nrepl
+```
+
+### Running
+
+```bash
+clojure -X:run
+```
+
+### Testing
+
+Run tests with kaocha:
+```bash
+bb test
+```
+
+### Code Quality
+
+Format code:
+```bash
+bb format
+```
+
+Check formatting (CI):
+```bash
+bb format-check
+```
+
+Lint with clj-kondo:
+```bash
+bb lint
+```
+
+Import clj-kondo configs from dependencies:
+```bash
+bb import-kondo-config
+```
+
+### Git Hooks
+
+Install pre-commit hooks (auto-formats and lints):
+```bash
+./scripts/install-hooks.sh
+```
+
+## Conventions
+
+- Use semantic commit messages
+- Tests use kaocha; place tests in `test/` directory
+- Pre-commit hook auto-formats staged files and blocks on lint errors

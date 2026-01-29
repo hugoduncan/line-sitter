@@ -1,0 +1,11 @@
+# Clojure
+.cpcache/
+.clj-kondo/.cache/
+.lsp/
+.nrepl-port
+
+# Build artifacts
+target/
+
+# Task tracking
+.mcp-tasks-current.edn
