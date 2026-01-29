@@ -1,6 +1,10 @@
 # line-sitter
 
-A tree-sitter based tool for Clojure, using jtreesitter Java bindings.
+A tool to reformat Clojure code to enforce a maximum line length.
+
+Uses tree-sitter (via jtreesitter Java bindings) to understand the
+structure of the code, enabling structure-aware line breaking rather
+than naive text wrapping.
 
 ## Development
 
