@@ -344,3 +344,114 @@ tree-sitter what changed for efficient re-parsing:
 
 For line-sitter, single-pass editing is sufficient: parse once, collect
 all line break insertions, apply in reverse offset order.
+
+## Configuration
+
+line-sitter reads configuration from a `.line-sitter.edn` file, searched
+starting from the file being processed and walking up the directory
+hierarchy.
+
+### Configuration File Format
+
+The configuration file is an EDN map with optional keys:
+
+```clojure
+{:line-length 80
+ :extensions [".clj" ".cljs" ".cljc" ".edn"]}
+```
+
+**Keys:**
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `:line-length` | integer | `80` | Maximum allowed line length in characters |
+| `:extensions` | vector of strings | `[".clj" ".cljs" ".cljc" ".edn"]` | File extensions to process |
+
+### Configuration Search Algorithm
+
+When processing a file, line-sitter searches for `.line-sitter.edn`:
+
+1. Start from the directory containing the file being processed
+2. Look for `.line-sitter.edn` in the current directory
+3. If not found, move to the parent directory
+4. Repeat until a config file is found or filesystem root is reached
+5. If no config file is found, use default values
+
+This behavior mirrors how tools like `.gitignore` work, allowing
+project-level configuration that applies to all files within a
+directory tree.
+
+**Example directory structure:**
+
+```
+/home/user/projects/
+├── .line-sitter.edn          # Project-wide config
+└── myproject/
+    ├── src/
+    │   └── myproject/
+    │       └── core.clj      # Uses /home/user/projects/.line-sitter.edn
+    └── legacy/
+        ├── .line-sitter.edn  # Override for legacy code
+        └── old_code.clj      # Uses legacy/.line-sitter.edn
+```
+
+### Example Configurations
+
+**Minimal config (uses all defaults):**
+```clojure
+{}
+```
+
+**Standard 80-column config:**
+```clojure
+{:line-length 80}
+```
+
+**Extended line length for modern displays:**
+```clojure
+{:line-length 120}
+```
+
+**Clojure files only:**
+```clojure
+{:line-length 80
+ :extensions [".clj"]}
+```
+
+**Include EDN data files with longer lines:**
+```clojure
+{:line-length 100
+ :extensions [".clj" ".cljs" ".cljc" ".edn"]}
+```
+
+### Loading Implementation
+
+```clojure
+(require '[clojure.java.io :as io]
+         '[clojure.edn :as edn])
+
+(def default-config
+  {:line-length 80
+   :extensions [".clj" ".cljs" ".cljc" ".edn"]})
+
+(defn find-config-file
+  "Search for .line-sitter.edn starting from dir, walking up to root.
+  Returns the File if found, nil otherwise."
+  [dir]
+  (loop [current (io/file dir)]
+    (when current
+      (let [config-file (io/file current ".line-sitter.edn")]
+        (if (.exists config-file)
+          config-file
+          (recur (.getParentFile current)))))))
+
+(defn load-config
+  "Load configuration for the given file path.
+  Searches for .line-sitter.edn starting from the file's directory.
+  Returns merged config with defaults for any missing keys."
+  [file-path]
+  (let [dir         (.getParent (io/file file-path))
+        config-file (find-config-file dir)]
+    (if config-file
+      (merge default-config (edn/read-string (slurp config-file)))
+      default-config)))
