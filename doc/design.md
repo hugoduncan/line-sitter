@@ -357,7 +357,8 @@ The configuration file is an EDN map with optional keys:
 
 ```clojure
 {:line-length 80
- :extensions [".clj" ".cljs" ".cljc" ".edn"]}
+ :extensions [".clj" ".cljs" ".cljc" ".edn"]
+ :indents {my-macro :defn}}
 ```
 
 **Keys:**
@@ -366,6 +367,7 @@ The configuration file is an EDN map with optional keys:
 |-----|------|---------|-------------|
 | `:line-length` | integer | `80` | Maximum allowed line length in characters |
 | `:extensions` | vector of strings | `[".clj" ".cljs" ".cljc" ".edn"]` | File extensions to process |
+| `:indents` | map | `{}` | Custom indent rules for project-specific macros (see Line Breaking Algorithm) |
 
 ### Configuration Search Algorithm
 
@@ -568,3 +570,390 @@ line-sitter --check .
 The tool processes all files matching configured extensions in the
 current directory and its subdirectories, reporting any line length
 violations.
+
+## Line Breaking Algorithm
+
+This section describes the algorithm for reformatting Clojure code to
+enforce maximum line length while preserving semantics.
+
+### Overview
+
+The algorithm uses tree-sitter to understand code structure, enabling
+intelligent line breaking at form boundaries rather than arbitrary text
+positions. When a line exceeds the configured limit, the algorithm
+breaks forms from the outside in, placing each element on its own line
+with consistent 2-space indentation.
+
+### Algorithm Steps
+
+1. **Parse** the source file with tree-sitter to obtain the syntax tree
+2. **Scan** for lines exceeding the configured maximum length
+3. **Identify** the outermost breakable form on each long line
+4. **Break** that form by placing each child element on its own line
+5. **Re-check** the resulting lines; if any still exceed the limit,
+   break the next inner form
+6. **Recurse** until all lines fit or only unbreakable atoms remain
+7. **Leave** unbreakable content silently (no warning, no error)
+
+### Form Breaking Rules
+
+When breaking a form, apply these rules:
+
+1. **First element** stays on the same line as the opening delimiter
+2. **Special arguments** (based on indent rules) stay on the first line
+3. **Remaining elements** each go on their own line with 2-space indent
+   from the opening delimiter's column
+4. **Closing delimiter** stays on the same line as the last element
+
+#### Indent Rules (cljfmt-compatible)
+
+Certain forms have "special" arguments that should stay on the first
+line with the form name. line-sitter follows cljfmt's indent rules:
+
+| Rule | Forms | First line keeps |
+|------|-------|------------------|
+| `:defn` | `defn`, `defn-`, `defmacro`, `defmethod`, `defprotocol`, `defrecord`, `deftype`, `reify`, `extend-type`, `extend-protocol` | name (and dispatch value for defmethod) |
+| `:def` | `def`, `defonce`, `defmulti` | name |
+| `:fn` | `fn`, `bound-fn` | argument vector |
+| `:binding` | `let`, `when-let`, `if-let`, `binding`, `with-open`, `with-local-vars`, `with-redefs`, `doseq`, `for`, `loop` | bindings vector |
+| `:cond` | `cond`, `condp`, `cond->`, `cond->>` | (none - each clause on own line) |
+| `:case` | `case` | test expression |
+| `:if` | `if`, `if-not`, `when`, `when-not` | test expression |
+| `:try` | `try` | (none - body on next line) |
+| `:do` | `do` | (none - body on next line) |
+| default | everything else | (none - all args break) |
+
+**Examples:**
+
+```clojure
+;; :defn rule - keep name on first line
+(defn my-function
+  [x y z]
+  (+ x y z))
+
+;; :def rule - keep name on first line
+(def my-constant
+  "A very long value that exceeds the line limit")
+
+;; :binding rule - keep bindings on first line
+(let [x 1 y 2 z 3]
+  (+ x y z))
+
+;; :if rule - keep test on first line
+(if (some-condition? x)
+  then-expression
+  else-expression)
+
+;; default rule - plain function call
+(some-function
+  arg1
+  arg2
+  arg3)
+```
+
+The 2-space indent is fixed and does not align with arguments. This
+produces consistent, predictable output regardless of function name
+length.
+
+#### Configuration
+
+Indent rules can be extended via configuration:
+
+```clojure
+;; .line-sitter.edn
+{:line-length 80
+ :indents {my-special-macro :defn
+           with-my-resource :binding}}
+```
+
+This allows project-specific macros to use appropriate indent rules.
+
+### Breakable vs Unbreakable Nodes
+
+**Breakable nodes** (can have children placed on separate lines):
+- `list_lit` - lists `(...)`
+- `vec_lit` - vectors `[...]`
+- `map_lit` - maps `{...}`
+- `set_lit` - sets `#{...}`
+
+**Unbreakable atoms** (cannot be split):
+- `sym_lit` - symbols
+- `kwd_lit` - keywords
+- `str_lit` - strings (including multi-line)
+- `num_lit` - numbers
+- `char_lit` - characters
+- `nil_lit` - nil
+- `bool_lit` - booleans
+- `regex_lit` - regular expressions
+
+**Reader macros** preserve their prefix attached to the following form:
+- `quoting_lit` (`'form`) - quote stays attached
+- `syn_quoting_lit` (`` `form ``) - syntax-quote stays attached
+- `unquoting_lit` (`~form`) - unquote stays attached
+- `meta_lit` (`^meta form`) - metadata stays attached
+- `derefing_lit` (`@form`) - deref stays attached
+- `var_quoting_lit` (`#'var`) - var-quote stays attached
+- `anon_fn_lit` (`#(...)`) - treated as breakable like list_lit
+- `dis_expr` (`#_form`) - discard stays attached
+
+### Identifying the Outermost Form
+
+When a line exceeds the limit, the algorithm must find the correct form
+to break. The **outermost form** is the largest breakable form whose
+content contributes to the line length violation.
+
+**Procedure:**
+1. Find all nodes that span the long line
+2. Filter to breakable nodes (list_lit, vec_lit, map_lit, set_lit)
+3. Select the outermost (closest to root) among those whose breaking
+   would address the violation
+4. If the form starts on a previous line, consider only the portion
+   on the current line
+
+### Example 1: Simple Function Call
+
+A function call with many arguments exceeding the 40-character limit.
+
+**Before:**
+```clojure
+(println "Hello" "World" "from" "Clojure")
+```
+
+**Tree structure:**
+```
+list_lit
+├── sym_lit "println"
+├── str_lit "\"Hello\""
+├── str_lit "\"World\""
+├── str_lit "\"from\""
+└── str_lit "\"Clojure\""
+```
+
+**After breaking (limit: 40):**
+```clojure
+(println
+  "Hello"
+  "World"
+  "from"
+  "Clojure")
+```
+
+The `list_lit` is identified as the outermost breakable form. Each child
+(the symbol and strings) is placed on its own line with 2-space indent.
+
+### Example 2: Nested Form Breaking with Indent Rules
+
+When breaking the outer form isn't sufficient, break inner forms. Note
+how `defn` keeps its name on the first line (`:defn` indent rule).
+
+**Before (limit: 50):**
+```clojure
+(defn process [x] (-> x (transform-alpha) (transform-beta) (transform-gamma)))
+```
+
+**Tree structure:**
+```
+list_lit (defn)
+├── sym_lit "defn"
+├── sym_lit "process"
+├── vec_lit
+│   └── sym_lit "x"
+└── list_lit (->)
+    ├── sym_lit "->"
+    ├── sym_lit "x"
+    ├── list_lit
+    │   └── sym_lit "transform-alpha"
+    ├── list_lit
+    │   └── sym_lit "transform-beta"
+    └── list_lit
+        └── sym_lit "transform-gamma"
+```
+
+**After first break (outer defn form with :defn indent rule):**
+```clojure
+(defn process
+  [x]
+  (-> x (transform-alpha) (transform-beta) (transform-gamma)))
+```
+
+The `:defn` rule keeps `process` on the first line. Line 3 still exceeds
+50 characters. Break the inner `->` form:
+
+**After second break:**
+```clojure
+(defn process
+  [x]
+  (->
+    x
+    (transform-alpha)
+    (transform-beta)
+    (transform-gamma)))
+```
+
+All lines now fit within the limit.
+
+### Example 3: Unbreakable Content
+
+Long strings and symbols cannot be broken and are left as-is.
+
+**Before (limit: 40):**
+```clojure
+(def message "This is a very long string that cannot be broken")
+```
+
+**Tree structure:**
+```
+list_lit
+├── sym_lit "def"
+├── sym_lit "message"
+└── str_lit "\"This is a very long string that cannot be broken\""
+```
+
+**After breaking (with :def indent rule):**
+```clojure
+(def message
+  "This is a very long string that cannot be broken")
+```
+
+Line 2 still exceeds 40 characters, but `str_lit` is an unbreakable
+atom. The algorithm leaves it silently—no warning or error is produced.
+The user can apply the ignore mechanism if desired.
+
+### Example 4: Map Literals
+
+Maps break with each key-value pair, keeping pairs together when possible.
+
+**Before (limit: 50):**
+```clojure
+{:name "Alice" :age 30 :occupation "Engineer" :city "Boston"}
+```
+
+**After breaking:**
+```clojure
+{:name "Alice"
+  :age 30
+  :occupation "Engineer"
+  :city "Boston"}
+```
+
+Note: Key-value pairs are not kept on the same line by default. Each
+element (whether key or value) gets its own line. Future enhancement
+could keep pairs together.
+
+### Example 5: Metadata Preservation
+
+Metadata stays attached to its target form.
+
+**Before (limit: 40):**
+```clojure
+(defn ^:private ^:deprecated helper-fn [x y z] (+ x y z))
+```
+
+**Tree structure:**
+```
+list_lit
+├── sym_lit "defn"
+├── meta_lit
+│   ├── kwd_lit ":private"
+│   └── meta_lit
+│       ├── kwd_lit ":deprecated"
+│       └── sym_lit "helper-fn"
+├── vec_lit [x y z]
+└── list_lit (+ x y z)
+```
+
+**After breaking (with :defn indent rule):**
+```clojure
+(defn ^:private ^:deprecated helper-fn
+  [x y z]
+  (+ x y z))
+```
+
+The `:defn` indent rule keeps the name on the first line. The metadata
+chain `^:private ^:deprecated` stays attached to `helper-fn` as a single
+unit, so the entire `meta_lit` node stays on line 1.
+
+### Comments
+
+Comments (`;`) within forms are treated as their own elements and
+receive the same 2-space indentation when a form is broken.
+
+**Before:**
+```clojure
+(process input ; transform the input
+         intermediate ; apply rules
+         output) ; return result
+```
+
+**After breaking:**
+```clojure
+(process
+  input ; transform the input
+  intermediate ; apply rules
+  output) ; return result
+```
+
+Comments remain attached to the preceding element on the same line.
+
+### Implementation Sketch
+
+```clojure
+(defn needs-breaking?
+  "Check if a line exceeds the maximum length."
+  [line max-length]
+  (> (count line) max-length))
+
+(defn find-outermost-breakable
+  "Find the outermost breakable form spanning the given line."
+  [tree line-number]
+  ;; Walk tree, find breakable nodes (list_lit, vec_lit, map_lit, set_lit)
+  ;; that span line-number, return the outermost one
+  ...)
+
+(defn break-form
+  "Break a form by placing each child on its own line.
+  Returns a sequence of edits {:offset n :insert s}."
+  [node source]
+  ;; For each child after the first, insert newline + indent before it
+  ;; Indent = column of opening delimiter + 2
+  ...)
+
+(defn reformat
+  "Reformat source to fit within max-length.
+  Returns the reformatted source string."
+  [source max-length]
+  (let [tree (parse-source source)]
+    (loop [src source
+           tree tree]
+      (let [lines         (str/split-lines src)
+            long-line-idx (find-first-long-line lines max-length)]
+        (if-not long-line-idx
+          src ; all lines fit
+          (if-let [form (find-outermost-breakable tree long-line-idx)]
+            (let [edits   (break-form form src)
+                  new-src (apply-edits src (sort-by :offset > edits))
+                  new-tree (parse-source new-src)] ; or incremental reparse
+              (recur new-src new-tree))
+            src)))))) ; no breakable form found, return as-is
+```
+
+### Edge Cases
+
+**Empty collections:** No children to break; left unchanged.
+```clojure
+[] {} () #{}
+```
+
+**Single-element collections:** Breaking doesn't help; left unchanged.
+```clojure
+(x) [x] {:a 1}
+```
+
+**Already-broken forms:** Lines already within limit are not modified.
+
+**Mixed indentation in input:** The algorithm uses 2-space indent
+regardless of existing indentation. It does not preserve alignment-based
+formatting.
+
+**Strings with newlines:** Multi-line strings are single `str_lit` nodes
+and are unbreakable. They may cause lines to exceed limits.
