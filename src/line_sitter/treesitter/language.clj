@@ -74,6 +74,18 @@
                            :library-path
                            (System/getProperty "java.library.path")})))))))
 
+(defn- load-clojure-language*
+  "Internal: load the Clojure language grammar from a native library."
+  []
+  (let [[lib-path _source] (find-library-path)
+        arena (Arena/global)
+        symbols (SymbolLookup/libraryLookup ^Path lib-path arena)]
+    (Language/load symbols "tree_sitter_clojure")))
+
+(def ^:private clojure-language-delay
+  "Delay for one-time language loading."
+  (delay (load-clojure-language*)))
+
 (defn load-clojure-language
   "Load the Clojure language grammar from a native library.
 
@@ -82,10 +94,7 @@
   2. native/<os>-<arch>/ on classpath
   3. java.library.path
 
-  Returns a jtreesitter Language instance.
+  Returns a jtreesitter Language instance (memoized after first load).
   Throws ex-info if the library cannot be found or loaded."
   []
-  (let [[lib-path _source] (find-library-path)
-        arena (Arena/global)
-        symbols (SymbolLookup/libraryLookup ^Path lib-path arena)]
-    (Language/load symbols "tree_sitter_clojure")))
+  @clojure-language-delay)
