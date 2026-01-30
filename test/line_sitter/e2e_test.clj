@@ -2,23 +2,13 @@
   (:require
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing]]
-   [line-sitter.main :as main]))
+   [line-sitter.main :as main]
+   [line-sitter.test-util :refer [with-captured-output]]))
 
 ;; End-to-end tests using static fixtures in test-resources/.
 ;; These tests verify the complete flow from CLI args to exit code
 ;; using pre-configured directories that test config loading, file
 ;; discovery, and extensions filtering.
-
-(defmacro with-captured-output
-  "Capture stdout and stderr during body execution.
-  Returns [out-str err-str result]."
-  [& body]
-  `(let [out# (java.io.StringWriter.)
-         err# (java.io.StringWriter.)]
-     (binding [*out* out#
-               *err* err#]
-       (let [result# (do ~@body)]
-         [(str out#) (str err#) result#]))))
 
 ;;; Config search tests
 

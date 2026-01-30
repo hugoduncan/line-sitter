@@ -2,7 +2,8 @@
   (:require
    [babashka.fs :as fs]
    [clojure.test :refer [deftest is testing]]
-   [line-sitter.config :as config]))
+   [line-sitter.config :as config]
+   [line-sitter.test-util :refer [with-temp-dir]]))
 
 ;; Tests for configuration loading, merging, and validation.
 ;; Contracts tested:
@@ -10,16 +11,6 @@
 ;; - find-config-file walks up directory tree correctly
 ;; - load-config merges user config with defaults
 ;; - validate-config rejects invalid configurations
-
-(defmacro with-temp-dir
-  "Create a temporary directory, bind it to `sym`, execute `body`,
-  then clean up the directory."
-  [[sym] & body]
-  `(let [~sym (fs/create-temp-dir)]
-     (try
-       ~@body
-       (finally
-         (fs/delete-tree ~sym)))))
 
 (deftest default-config-test
   (testing "default-config"

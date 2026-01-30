@@ -3,33 +3,13 @@
    [babashka.fs :as fs]
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing]]
-   [line-sitter.main :as main]))
+   [line-sitter.main :as main]
+   [line-sitter.test-util :refer [with-captured-output with-temp-dir]]))
 
 ;; Integration tests for main entry point. Verifies the full flow:
 ;; parse args → load config → resolve files → process → exit code.
 ;; Tests cover help output, check/fix/stdout modes, config loading,
 ;; and error handling.
-
-(defmacro with-temp-dir
-  "Create a temporary directory, bind it to `sym`, execute `body`,
-  then clean up the directory."
-  [[sym] & body]
-  `(let [~sym (fs/create-temp-dir)]
-     (try
-       ~@body
-       (finally
-         (fs/delete-tree ~sym)))))
-
-(defmacro with-captured-output
-  "Capture stdout and stderr during body execution.
-  Returns [out-str err-str result]."
-  [& body]
-  `(let [out# (java.io.StringWriter.)
-         err# (java.io.StringWriter.)]
-     (binding [*out* out#
-               *err* err#]
-       (let [result# (do ~@body)]
-         [(str out#) (str err#) result#]))))
 
 (deftest help-test
   (testing "run with --help"
