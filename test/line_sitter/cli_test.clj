@@ -54,7 +54,15 @@
     (testing "when multiple modes specified, last wins"
       ;; babashka.cli default behavior: later flags override earlier ones
       (is (= {:opts {:fix true :stdout true} :args []}
-             (cli/parse-args ["--fix" "--stdout"]))))))
+             (cli/parse-args ["--fix" "--stdout"]))))
+
+    (testing "when --line-length is given without a value"
+      ;; babashka.cli treats the flag as boolean true then fails coercion to long
+      (testing "throws an exception with coercion failure message"
+        (is (thrown-with-msg?
+             clojure.lang.ExceptionInfo
+             #"cannot transform.*to long"
+             (cli/parse-args ["--line-length"])))))))
 
 ;;; File discovery tests
 
