@@ -46,6 +46,15 @@
         (let [file (fs/file dir "all-short.clj")]
           (spit file "a\nbb\nccc\n")
           (is (= []
+                 (check/check-line-lengths (str file) 10))))))
+
+    (testing "returns no violation for line exactly at max-length"
+      (with-temp-dir [dir]
+        (let [file (fs/file dir "exact.clj")
+              ;; Line of exactly 10 characters (not 11)
+              exact-line "1234567890"]
+          (spit file (str exact-line "\n"))
+          (is (= []
                  (check/check-line-lengths (str file) 10))))))))
 
 (deftest format-violation-test
