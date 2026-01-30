@@ -20,13 +20,18 @@
 
 (defn- extract-resource-to-temp
   "Extract a classpath resource to a temporary file.
-  Returns the Path to the temp file, or nil if resource not found."
+  Returns the Path to the temp file, or nil if resource not found.
+  Files are marked for deletion when the JVM exits."
   [resource-path]
   (when-let [url (io/resource resource-path)]
     (let [temp-dir (fs/create-temp-dir {:prefix "line-sitter-"})
           temp-file (fs/path temp-dir (fs/file-name resource-path))]
       (with-open [in (io/input-stream url)]
         (io/copy in (fs/file temp-file)))
+      ;; Mark for deletion on JVM exit.
+      ;; Delete file first, then directory (deleteOnExit order is LIFO).
+      (.deleteOnExit (fs/file temp-dir))
+      (.deleteOnExit (fs/file temp-file))
       temp-file)))
 
 (defn- find-in-library-path
