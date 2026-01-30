@@ -31,29 +31,141 @@
 
 (deftest check-mode-test
   (testing "run in check mode"
-    (testing "exits 0 with valid files"
-      (with-temp-dir [root]
-        (let [file (fs/path root "test.clj")]
-          (spit (str file) "(ns test)")
-          (let [[_out _err exit-code] (with-captured-output
-                                        (main/run ["--check" (str file)]))]
-            (is (= 0 exit-code))))))
+    (testing "given files with no violations"
+      (testing "exits 0"
+        (with-temp-dir [root]
+          (let [file (fs/path root "test.clj")]
+            (spit (str file) "(ns test)")
+            (let [[_out _err exit-code] (with-captured-output
+                                          (main/run ["--check" (str file)]))]
+              (is (= 0 exit-code)))))))
 
-    (testing "exits 0 with directory"
-      (with-temp-dir [root]
-        (let [file (fs/path root "test.clj")]
-          (spit (str file) "(ns test)")
+    (testing "given directory with no violations"
+      (testing "exits 0"
+        (with-temp-dir [root]
+          (let [file (fs/path root "test.clj")]
+            (spit (str file) "(ns test)")
+            (let [[_out _err exit-code] (with-captured-output
+                                          (main/run ["--check" (str root)]))]
+              (is (= 0 exit-code)))))))
+
+    (testing "without explicit --check flag"
+      (testing "defaults to check mode"
+        (with-temp-dir [root]
+          (let [file (fs/path root "test.clj")]
+            (spit (str file) "(ns test)")
+            (let [[_out _err exit-code] (with-captured-output
+                                          (main/run [(str file)]))]
+              (is (= 0 exit-code)))))))
+
+    (testing "given file with violations"
+      (testing "exits 1 and reports to stderr"
+        (with-temp-dir [root]
+          (let [file (fs/path root "long.clj")
+                long-line (apply str (repeat 100 "x"))]
+            (spit (str file) (str "(ns long)\n" long-line "\n"))
+            (let [[_out err exit-code] (with-captured-output
+                                         (main/run ["--check" (str file)]))]
+              (is (= 1 exit-code))
+              (is (str/includes? err "line exceeds 80 characters"))
+              (is (str/includes? err ":2:")))))))
+
+    (testing "given mixed files"
+      (testing "exits 1 and reports only violations"
+        (with-temp-dir [root]
+          (let [good-file (fs/path root "good.clj")
+                bad-file (fs/path root "bad.clj")
+                long-line (apply str (repeat 100 "y"))]
+            (spit (str good-file) "(ns good)")
+            (spit (str bad-file) (str "(ns bad)\n" long-line "\n"))
+            (let [[_out err exit-code] (with-captured-output
+                                         (main/run ["--check" (str root)]))]
+              (is (= 1 exit-code))
+              (is (str/includes? err "bad.clj"))
+              (is (not (str/includes? err "good.clj"))))))))
+
+    (testing "given empty file list"
+      (testing "exits 0"
+        (with-temp-dir [root]
+          ;; Create an empty directory with no .clj files
           (let [[_out _err exit-code] (with-captured-output
                                         (main/run ["--check" (str root)]))]
             (is (= 0 exit-code))))))
 
-    (testing "is the default mode"
-      (with-temp-dir [root]
-        (let [file (fs/path root "test.clj")]
-          (spit (str file) "(ns test)")
-          (let [[_out _err exit-code] (with-captured-output
-                                        (main/run [(str file)]))]
-            (is (= 0 exit-code))))))))
+    (testing "with --line-length override"
+      (testing "uses CLI value over default"
+        (with-temp-dir [root]
+          (let [file (fs/path root "test.clj")
+                ;; 50 chars - would violate default 80, but not 60
+                line (apply str (repeat 50 "z"))]
+            (spit (str file) line)
+            (let [[_out _err exit-code] (with-captured-output
+                                          (main/run ["--line-length" "60"
+                                                     "--check" (str file)]))]
+              (is (= 0 exit-code)))))))
+
+    (testing "summary output"
+      (testing "given multiple files with no violations"
+        (testing "prints summary to stderr"
+          (with-temp-dir [root]
+            (let [file1 (fs/path root "a.clj")
+                  file2 (fs/path root "b.clj")]
+              (spit (str file1) "(ns a)")
+              (spit (str file2) "(ns b)")
+              (let [[_out err exit-code] (with-captured-output
+                                           (main/run ["--check" (str root)]))]
+                (is (= 0 exit-code))
+                (is (str/includes? err "Checked 2 files"))
+                (is (str/includes? err "all lines within limit")))))))
+
+      (testing "given multiple files with violations"
+        (testing "prints summary with count"
+          (with-temp-dir [root]
+            (let [file1 (fs/path root "a.clj")
+                  file2 (fs/path root "b.clj")
+                  long-line (apply str (repeat 100 "x"))]
+              (spit (str file1) "(ns a)")
+              (spit (str file2) (str "(ns b)\n" long-line))
+              (let [[_out err exit-code] (with-captured-output
+                                           (main/run ["--check" (str root)]))]
+                (is (= 1 exit-code))
+                (is (str/includes? err "Checked 2 files"))
+                (is (str/includes? err "1 violation found")))))))
+
+      (testing "given single file"
+        (testing "does not print summary"
+          (with-temp-dir [root]
+            (let [file (fs/path root "test.clj")]
+              (spit (str file) "(ns test)")
+              (let [[_out err exit-code] (with-captured-output
+                                           (main/run ["--check" (str file)]))]
+                (is (= 0 exit-code))
+                (is (not (str/includes? err "Checked")))))))))
+
+    (testing "with --quiet flag"
+      (testing "suppresses summary output"
+        (with-temp-dir [root]
+          (let [file1 (fs/path root "a.clj")
+                file2 (fs/path root "b.clj")]
+            (spit (str file1) "(ns a)")
+            (spit (str file2) "(ns b)")
+            (let [[_out err exit-code] (with-captured-output
+                                         (main/run ["--check" "--quiet"
+                                                    (str root)]))]
+              (is (= 0 exit-code))
+              (is (not (str/includes? err "Checked")))))))
+
+      (testing "with -q alias"
+        (testing "suppresses summary output"
+          (with-temp-dir [root]
+            (let [file1 (fs/path root "a.clj")
+                  file2 (fs/path root "b.clj")]
+              (spit (str file1) "(ns a)")
+              (spit (str file2) "(ns b)")
+              (let [[_out err exit-code] (with-captured-output
+                                           (main/run ["--check" "-q" (str root)]))]
+                (is (= 0 exit-code))
+                (is (not (str/includes? err "Checked")))))))))))
 
 (deftest fix-mode-test
   (testing "run in fix mode"

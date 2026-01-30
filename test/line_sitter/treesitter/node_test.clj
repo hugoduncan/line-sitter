@@ -154,3 +154,51 @@
     (testing "returns nil for nil input"
       (is (nil? (node/named-children nil))
           "nil node returns nil"))))
+
+(deftest next-named-sibling-test
+  ;; Verify next-named-sibling returns the next named sibling node.
+  (testing "next-named-sibling"
+    (testing "returns next named sibling"
+      (let [tree (parser/parse-source "(a) (b) (c)")
+            root (node/root-node tree)
+            children (node/named-children root)
+            first-child (first children)]
+        (is (= "(b)" (node/node-text (node/next-named-sibling first-child)))
+            "next sibling of (a) is (b)")))
+
+    (testing "returns nil for last sibling"
+      (let [tree (parser/parse-source "(a) (b)")
+            root (node/root-node tree)
+            last-child (last (node/named-children root))]
+        (is (nil? (node/next-named-sibling last-child))
+            "last sibling has no next")))
+
+    (testing "returns nil for nil input"
+      (is (nil? (node/next-named-sibling nil))
+          "nil node returns nil"))))
+
+(deftest node-line-range-test
+  ;; Verify node-line-range returns 1-indexed line range.
+  (testing "node-line-range"
+    (testing "returns [start end] for single line"
+      (let [tree (parser/parse-source "(foo bar)")
+            root (node/root-node tree)]
+        (is (= [1 1] (node/node-line-range root))
+            "single line is [1 1]")))
+
+    (testing "returns correct range for multiline"
+      (let [tree (parser/parse-source "(foo\n  bar\n  baz)")
+            root (node/root-node tree)]
+        (is (= [1 3] (node/node-line-range root))
+            "three lines is [1 3]")))
+
+    (testing "returns correct range for nested node"
+      (let [tree (parser/parse-source "(a)\n(b\n  c)")
+            root (node/root-node tree)
+            second-form (second (node/named-children root))]
+        (is (= [2 3] (node/node-line-range second-form))
+            "second form spans lines 2-3")))
+
+    (testing "returns nil for nil input"
+      (is (nil? (node/node-line-range nil))
+          "nil node returns nil"))))
