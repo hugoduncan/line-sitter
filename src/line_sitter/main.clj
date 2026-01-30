@@ -82,9 +82,12 @@ Exit codes:
               base-config (if config-path
                             (config/load-config config-path)
                             config/default-config)
+              ;; Merge CLI overrides with config
               final-config (cond-> base-config
                              (:line-length opts)
                              (assoc :line-length (:line-length opts)))
+              ;; Validate needed: load-config validates, but when no config file
+              ;; exists we use default-config directly with CLI overrides applied.
               _ (config/validate-config final-config)
               files (cli/resolve-files args (:extensions final-config))]
           (process-files files opts))))
