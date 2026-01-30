@@ -18,3 +18,18 @@
            (filter (fn [{:keys [length]}]
                      (> length max-length))))
           lines)))
+
+(defn format-violation
+  "Format a single violation for display.
+  Returns string in format: path/to/file.clj:42: line exceeds 80 characters (actual: 95)"
+  [{:keys [file line length]} max-length]
+  (str file ":" line ": line exceeds " max-length " characters (actual: " length ")"))
+
+(defn report-violations
+  "Write formatted violations to stderr.
+  Returns the number of violations reported."
+  [violations max-length]
+  (binding [*out* *err*]
+    (doseq [v violations]
+      (println (format-violation v max-length))))
+  (count violations))
