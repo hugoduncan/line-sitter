@@ -60,14 +60,12 @@ Exit codes:
   "Process files according to mode. Currently no-op.
   Returns exit code."
   [files opts]
-  (cond
-    (:stdout opts)
+  (if (:stdout opts)
     (do
       (process-stdout files)
       0)
-
     ;; --check and --fix are no-ops, exit 0
-    :else 0))
+    0))
 
 (defn run
   "Run line-sitter with given args. Returns exit code.
