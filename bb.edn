@@ -18,9 +18,15 @@
            (shell "cljfmt check src test"))}
 
   test
-  {:doc "Run tests with kaocha"
+  {:doc "Run tests with kaocha (unit tests only)"
    :task (do
            (println "Running tests...")
+           (shell "clojure -M:test :unit"))}
+
+  test-all
+  {:doc "Run all tests including treesitter tests (requires native libs)"
+   :task (do
+           (println "Running all tests...")
            (shell "clojure -M:test"))}
 
   import-kondo-config

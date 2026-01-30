@@ -1,1 +1,9 @@
-#kaocha/v1 {}
+#kaocha/v1
+ {:tests [{:id :unit
+           :source-paths ["src"]
+           :test-paths ["test"]
+           :ns-patterns ["^line-sitter\\.(?!treesitter).*-test$"]}
+          {:id :treesitter
+           :source-paths ["src"]
+           :test-paths ["test"]
+           :ns-patterns ["^line-sitter\\.treesitter\\..*-test$"]}]}

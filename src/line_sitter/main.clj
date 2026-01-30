@@ -2,6 +2,7 @@
   "Main entry point for line-sitter CLI."
   (:require
    [babashka.fs :as fs]
+   [line-sitter.check :as check]
    [line-sitter.cli :as cli]
    [line-sitter.config :as config]))
 
@@ -28,6 +29,7 @@ Examples:
 
 Exit codes:
   0  Success (no violations in check mode, or fix/stdout completed)
+  1  Violations found (check mode only)
   2  Error (invalid arguments, config error, file not found)")
 
 (defn format-error
@@ -56,15 +58,35 @@ Exit codes:
         (println (str ";;; " file)))
       (print (slurp file)))))
 
+(defn- process-check
+  "Process files in check mode.
+  Checks each file for line length violations, reports to stderr.
+  Returns exit code: 0 if no violations, 1 if violations found."
+  [files max-length]
+  (let [all-violations (into []
+                             (mapcat (fn [file]
+                                       (map #(assoc % :file file)
+                                            (check/check-line-lengths
+                                             file max-length))))
+                             files)]
+    (check/report-violations all-violations max-length)
+    (if (seq all-violations) 1 0)))
+
 (defn- process-files
-  "Process files according to mode. Currently no-op.
+  "Process files according to mode.
   Returns exit code."
-  [files opts]
-  (if (:stdout opts)
+  [files opts config]
+  (cond
+    (:stdout opts)
     (do
       (process-stdout files)
       0)
-    ;; --check and --fix are no-ops, exit 0
+
+    (:check opts)
+    (process-check files (:line-length config))
+
+    ;; --fix is a no-op for now
+    :else
     0))
 
 (defn run
@@ -90,7 +112,7 @@ Exit codes:
               ;; exists we use default-config directly with CLI overrides applied.
               _ (config/validate-config final-config)
               files (cli/resolve-files args (:extensions final-config))]
-          (process-files files opts))))
+          (process-files files opts final-config))))
     (catch clojure.lang.ExceptionInfo e
       (let [data (ex-data e)
             error-type (name (or (:type data) :error))]
