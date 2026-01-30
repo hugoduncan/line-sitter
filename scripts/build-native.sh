@@ -19,38 +19,21 @@
 (require '[babashka.fs :as fs]
          '[babashka.process :refer [shell]])
 
+;; Add src to classpath for platform namespace
+(babashka.classpath/add-classpath (str (fs/path (fs/parent (fs/parent *file*)) "src")))
+
+(require '[line-sitter.platform :as platform])
+
 (def project-root (fs/parent (fs/parent *file*)))
 (def build-base-dir (fs/path project-root ".build"))
 (def clojure-build-dir (fs/path build-base-dir "tree-sitter-clojure"))
 (def core-build-dir (fs/path build-base-dir "tree-sitter"))
 (def resources-dir (fs/path project-root "resources"))
 
-(defn detect-os
-  "Detect operating system: darwin or linux."
-  []
-  (let [os-name (System/getProperty "os.name")]
-    (cond
-      (re-find #"(?i)mac" os-name) "darwin"
-      (re-find #"(?i)linux" os-name) "linux"
-      :else (throw (ex-info (str "Unsupported OS: " os-name) {:os os-name})))))
-
-(defn detect-arch
-  "Detect architecture: aarch64 or x86_64."
-  []
-  (let [arch (System/getProperty "os.arch")]
-    (case arch
-      "aarch64" "aarch64"
-      "arm64" "aarch64"
-      "amd64" "x86_64"
-      "x86_64" "x86_64"
-      (throw (ex-info (str "Unsupported architecture: " arch) {:arch arch})))))
-
 (defn library-name
   "Get platform-specific library name."
   [os base-name]
-  (case os
-    "darwin" (str "lib" base-name ".dylib")
-    "linux" (str "lib" base-name ".so")))
+  (str "lib" base-name (platform/library-extension os)))
 
 (defn clone-repo
   "Clone a repository if not present."
@@ -95,8 +78,8 @@
 
 (defn -main
   []
-  (let [os (detect-os)
-        arch (detect-arch)
+  (let [os (platform/detect-os)
+        arch (platform/detect-arch)
         output-dir (fs/path resources-dir "native" (str os "-" arch))]
     (println (str "Building for " os "-" arch))
     (fs/create-dirs output-dir)

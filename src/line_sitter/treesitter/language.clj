@@ -7,37 +7,16 @@
   3. java.library.path"
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [line-sitter.platform :as platform])
   (:import [java.lang.foreign Arena SymbolLookup]
            [java.nio.file Path]
            [io.github.treesitter.jtreesitter Language]))
 
-(defn- detect-os
-  "Detect operating system: darwin or linux."
-  []
-  (let [os-name (System/getProperty "os.name")]
-    (cond
-      (re-find #"(?i)mac" os-name) "darwin"
-      (re-find #"(?i)linux" os-name) "linux"
-      :else (throw (ex-info (str "Unsupported OS: " os-name)
-                            {:os os-name})))))
-
-(defn- detect-arch
-  "Detect architecture: aarch64 or x86_64."
-  []
-  (let [arch (System/getProperty "os.arch")]
-    (case arch
-      ("aarch64" "arm64") "aarch64"
-      ("amd64" "x86_64") "x86_64"
-      (throw (ex-info (str "Unsupported architecture: " arch)
-                      {:arch arch})))))
-
 (defn- library-name
   "Get platform-specific library filename."
   [os]
-  (case os
-    "darwin" "libtree-sitter-clojure.dylib"
-    "linux" "libtree-sitter-clojure.so"))
+  (str "libtree-sitter-clojure" (platform/library-extension os)))
 
 (defn- extract-resource-to-temp
   "Extract a classpath resource to a temporary file.
@@ -68,8 +47,8 @@
   Returns [Path source] where source is :env-var, :classpath, or :library-path.
   Throws ex-info if not found."
   []
-  (let [os (detect-os)
-        arch (detect-arch)
+  (let [os (platform/detect-os)
+        arch (platform/detect-arch)
         lib-name (library-name os)
         env-path (System/getenv "LINE_SITTER_NATIVE_LIB")
         resource-path (str "native/" os "-" arch "/" lib-name)]
