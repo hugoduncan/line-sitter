@@ -19,6 +19,19 @@
 (require '[babashka.fs :as fs]
          '[babashka.process :refer [shell]])
 
+(defn shell-with-context
+  "Execute shell command with context for error messages.
+  context-msg describes what step is being performed."
+  [context-msg opts & args]
+  (try
+    (apply shell opts args)
+    (catch Exception e
+      (throw (ex-info (str "Build failed: " context-msg)
+                      {:step context-msg
+                       :opts opts
+                       :args args}
+                      e)))))
+
 ;; Add src to classpath for platform namespace
 (babashka.classpath/add-classpath (str (fs/path (fs/parent (fs/parent *file*)) "src")))
 
@@ -41,9 +54,10 @@
   (when-not (fs/exists? build-dir)
     (println (str "Cloning " (fs/file-name build-dir) "..."))
     (fs/create-dirs (fs/parent build-dir))
-    (shell {:dir (fs/parent build-dir)}
-           "git" "clone" "--depth" "1" url
-           (str (fs/file-name build-dir)))))
+    (shell-with-context (str "cloning " (fs/file-name build-dir))
+                        {:dir (fs/parent build-dir)}
+                        "git" "clone" "--depth" "1" url
+                        (str (fs/file-name build-dir)))))
 
 (defn compile-clojure-grammar
   "Compile tree-sitter-clojure grammar for the current platform."
@@ -51,11 +65,12 @@
   (let [lib-name (library-name os "tree-sitter-clojure")
         output-path (fs/path output-dir lib-name)]
     (println (str "Compiling " lib-name " for " os "-" arch "..."))
-    (shell {:dir (str clojure-build-dir)}
-           "cc" "-shared" "-fPIC"
-           "-I" "src"
-           "src/parser.c"
-           "-o" (str output-path))
+    (shell-with-context "compiling Clojure grammar"
+                        {:dir (str clojure-build-dir)}
+                        "cc" "-shared" "-fPIC"
+                        "-I" "src"
+                        "src/parser.c"
+                        "-o" (str output-path))
     (println (str "Built: " output-path))
     output-path))
 
@@ -67,12 +82,13 @@
         lib-dir (fs/path core-build-dir "lib")]
     (println (str "Compiling " lib-name " for " os "-" arch "..."))
     ;; tree-sitter core has its source in lib/src/
-    (shell {:dir (str core-build-dir)}
-           "cc" "-shared" "-fPIC"
-           "-I" (str lib-dir "/include")
-           "-I" (str lib-dir "/src")
-           (str lib-dir "/src/lib.c")
-           "-o" (str output-path))
+    (shell-with-context "compiling tree-sitter core library"
+                        {:dir (str core-build-dir)}
+                        "cc" "-shared" "-fPIC"
+                        "-I" (str lib-dir "/include")
+                        "-I" (str lib-dir "/src")
+                        (str lib-dir "/src/lib.c")
+                        "-o" (str output-path))
     (println (str "Built: " output-path))
     output-path))
 
