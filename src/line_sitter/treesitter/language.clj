@@ -47,6 +47,12 @@
             (str/split lib-path
                        (re-pattern (System/getProperty "path.separator")))))))
 
+(defn- get-env-lib-path
+  "Get the native library path from environment variable.
+  Returns the path string or nil if not set."
+  []
+  (System/getenv "LINE_SITTER_NATIVE_LIB"))
+
 (defn- find-library-path
   "Find the native library path using discovery order.
   Returns [Path source] where source is :env-var, :classpath, or :library-path.
@@ -55,7 +61,7 @@
   (let [os (platform/detect-os)
         arch (platform/detect-arch)
         lib-name (library-name os)
-        env-path (System/getenv "LINE_SITTER_NATIVE_LIB")
+        env-path (get-env-lib-path)
         resource-path (str "native/" os "-" arch "/" lib-name)]
     (cond
       ;; 1. Explicit path via environment variable
