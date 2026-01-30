@@ -60,13 +60,13 @@ Exit codes:
 
 (defn- process-check
   "Process files in check mode.
-  Checks each file for line length violations, reports to stderr.
-  Returns exit code: 0 if no violations, 1 if violations found."
+  Checks each file for line length violations, respecting ignore directives.
+  Reports to stderr. Returns exit code: 0 if no violations, 1 if violations."
   [files max-length]
   (let [all-violations (into []
                              (mapcat (fn [file]
                                        (map #(assoc % :file file)
-                                            (check/check-line-lengths
+                                            (check/check-file-with-ignore
                                              file max-length))))
                              files)]
     (check/report-violations all-violations max-length)

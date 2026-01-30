@@ -76,3 +76,23 @@
   (when node
     (let [cnt (.getNamedChildCount node)]
       (into [] (keep #(optional->node (.getNamedChild node %))) (range cnt)))))
+
+(defn next-named-sibling
+  "Get the next named sibling node.
+
+  Returns the next sibling that is a named node (not punctuation).
+  Returns nil if node is nil or has no next named sibling."
+  ^Node [^Node node]
+  (when node
+    (optional->node (.getNextNamedSibling node))))
+
+(defn node-line-range
+  "Get the line range for a node.
+
+  Returns a vector [start-line end-line] with 1-indexed line numbers.
+  Both endpoints are inclusive.
+  Returns nil if node is nil."
+  [^Node node]
+  (when node
+    [(inc (.row (.getStartPoint node)))
+     (inc (.row (.getEndPoint node)))]))

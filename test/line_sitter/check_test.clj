@@ -93,3 +93,39 @@
     (testing "returns zero for empty violations"
       (binding [*err* (java.io.StringWriter.)]
         (is (= 0 (check/report-violations [] 80)))))))
+
+(deftest filter-violations-test
+  ;; Tests filtering of violations based on ignored line ranges.
+  ;; Contract: filter-violations removes violations whose line falls within
+  ;; any [start end] range in the ignored-ranges set.
+  (testing "filter-violations"
+    (testing "returns all violations when no ranges"
+      (let [violations [{:line 1 :length 85} {:line 5 :length 90}]]
+        (is (= violations
+               (check/filter-violations violations #{})))))
+
+    (testing "removes violations within single range"
+      (let [violations [{:line 1 :length 85}
+                        {:line 3 :length 90}
+                        {:line 5 :length 95}]]
+        (is (= [{:line 1 :length 85} {:line 5 :length 95}]
+               (check/filter-violations violations #{[2 4]})))))
+
+    (testing "removes violations within multiple ranges"
+      (let [violations [{:line 1 :length 85}
+                        {:line 3 :length 90}
+                        {:line 7 :length 95}
+                        {:line 10 :length 100}]]
+        (is (= [{:line 1 :length 85} {:line 10 :length 100}]
+               (check/filter-violations violations #{[2 4] [6 8]})))))
+
+    (testing "includes violation on range boundary (inclusive)"
+      (let [violations [{:line 2 :length 85}
+                        {:line 4 :length 90}]]
+        (is (= []
+               (check/filter-violations violations #{[2 4]})))))
+
+    (testing "returns empty when all filtered"
+      (let [violations [{:line 3 :length 85}]]
+        (is (= []
+               (check/filter-violations violations #{[1 10]})))))))
