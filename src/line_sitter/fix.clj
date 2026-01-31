@@ -364,7 +364,9 @@
 ;;; Iterative multi-pass breaking
 
 (def ^:private max-iterations
-  "Maximum number of breaking passes to prevent infinite loops."
+  "Maximum number of breaking passes to prevent infinite loops.
+  100 is generous for deeply nested forms (typical code rarely needs more
+  than 10-20 passes) while catching bugs that cause infinite loops."
   100)
 
 (defn- try-break-forms
