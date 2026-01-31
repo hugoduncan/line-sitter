@@ -111,7 +111,7 @@
               (= node (second (node/named-children parent)))))))
 
 (defn- elements-to-keep-on-first-line
-  "Number of elements to keep on the first line based on indent rule or node type.
+  "Number of elements to keep on the first line based on indent rule.
   :defn/:def keep 2 (head + name)
   :fn keeps 2 (head + arg vector)
   :binding keeps 2 (head + binding vector)
@@ -200,8 +200,9 @@
     (let [self (when (and (breakable-node? node)
                           (form-needs-breaking-on-line? node line))
                  [node])
-          children-results (mapcat #(find-breakable-forms-on-line % line ignored-ranges)
-                                   (node/named-children node))]
+          children-results
+          (mapcat #(find-breakable-forms-on-line % line ignored-ranges)
+                  (node/named-children node))]
       (into (vec self) children-results))))
 
 (defn find-breakable-forms
@@ -258,8 +259,8 @@
 
 (defn- make-break-edit
   "Create a break edit between two children.
-  Returns nil if no edit is needed (comment attached to preceding element).
-  When prev-child is a comment (contains trailing newline), only inserts indent."
+  Returns nil if no edit needed (comment attached to preceding element).
+  When prev-child is a comment (has trailing newline), only inserts indent."
   [prev-child next-child indent-col]
   (let [indent-spaces (apply str (repeat indent-col \space))]
     (cond
@@ -285,8 +286,8 @@
   Groups elements in pairs and breaks only between pairs."
   [last-kept breakable-children indent-col]
   (let [pairs (partition-all 2 breakable-children)
-        ;; For each pair, we need to break before the first element of the pair
-        ;; Get the element before each pair (last-kept for first, last of prev pair for rest)
+        ;; For each pair, break before its first element.
+        ;; Prev elem: last-kept for 1st pair, last of prev pair for rest
         prev-elements (cons last-kept (map last (butlast pairs)))
         first-of-pairs (map first pairs)
         ;; Generate edits between prev-element and first-of-pair
@@ -348,8 +349,10 @@
                last-kept (nth children (dec keep-count))
                ;; Generate edits based on whether pair grouping applies
                edits (if (uses-pair-grouping? node config)
-                       (generate-paired-edits last-kept breakable-children indent-col)
-                       (generate-sequential-edits last-kept breakable-children indent-col))]
+                       (generate-paired-edits
+                        last-kept breakable-children indent-col)
+                       (generate-sequential-edits
+                        last-kept breakable-children indent-col))]
            (when (seq edits)
              edits)))))))
 
@@ -392,7 +395,7 @@
 
   The algorithm:
   1. Find lines exceeding max-length
-  2. Collect ignored byte ranges (re-collected each pass since byte positions shift)
+  2. Collect ignored byte ranges (re-collected each pass as positions shift)
   3. Find breakable forms on first violating line (outermost to innermost)
   4. Try breaking each form until one produces a change
   5. Re-parse and repeat until no violations or no breakable forms"
@@ -406,10 +409,11 @@
           (if (empty? long-lines)
             source
             (let [tree (parser/parse-source source)
-                  ;; Collect ignored ranges each pass since byte positions shift after edits
+                  ;; Re-collect ignored ranges (positions shift after edits)
                   ignored-ranges (check/find-ignored-byte-ranges tree)
                   first-long-line (first long-lines)
-                  breakable-forms (find-breakable-forms tree first-long-line ignored-ranges)
+                  breakable-forms
+                  (find-breakable-forms tree first-long-line ignored-ranges)
                   new-source (try-break-forms source breakable-forms config)]
               (if new-source
                 (recur new-source (inc iteration))

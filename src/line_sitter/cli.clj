@@ -46,7 +46,8 @@
   "Build a glob pattern matching any of the given extensions.
   Uses ** without trailing slash to match at any depth including root."
   [extensions]
-  ;; Remove leading dots for brace expansion (glob uses {clj,cljs} not {.clj,.cljs})
+  ;; Remove leading dots for brace expansion
+  ;; (glob uses {clj,cljs} not {.clj,.cljs})
   (let [exts (map #(str/replace % #"^\." "") extensions)]
     (str "**.{" (str/join "," exts) "}")))
 

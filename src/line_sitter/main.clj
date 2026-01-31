@@ -52,7 +52,7 @@ Exit codes:
 
 (defn- process-stdout
   "Process files in stdout mode with fix applied.
-  Outputs reformatted content. If multiple files, prefixes each with ;;; path header."
+  Outputs reformatted content. Multiple files get ;;; path headers."
   [files config]
   (let [multiple? (> (count files) 1)]
     (doseq [file files]
@@ -133,8 +133,8 @@ Exit codes:
               final-config (cond-> base-config
                              (:line-length opts)
                              (assoc :line-length (:line-length opts)))
-              ;; Validate needed: load-config validates, but when no config file
-              ;; exists we use default-config directly with CLI overrides applied.
+              ;; Validate: load-config validates, but when no config file exists
+              ;; we use default-config directly with CLI overrides applied.
               _ (config/validate-config final-config)
               files (cli/resolve-files args (:extensions final-config))]
           (process-files files opts final-config))))

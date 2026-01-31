@@ -163,7 +163,8 @@
               (spit (str file1) "(ns a)")
               (spit (str file2) "(ns b)")
               (let [[_out err exit-code] (with-captured-output
-                                           (main/run ["--check" "-q" (str root)]))]
+                                           (main/run ["--che
+                                             k" "-q" (str root)]))]
                 (is (= 0 exit-code))
                 (is (not (str/includes? err "Checked")))))))))))
 

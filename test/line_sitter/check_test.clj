@@ -1,6 +1,6 @@
 (ns line-sitter.check-test
   ;; Tests for check-line-lengths function.
-  ;; Verifies contract: returns vector of {:line n :length len} for violating lines.
+  ;; Contract: returns [{:line n :length len}] for violating lines.
   (:require
    [clojure.test :refer [deftest is testing]]
    [babashka.fs :as fs]
@@ -59,29 +59,31 @@
 
 (deftest format-violation-test
   ;; Tests formatting of violation data into user-facing error message.
-  ;; Contract: format-violation takes {:file :line :length} and max-length,
-  ;; returns string in format "path:line: line exceeds N characters (actual: M)".
+  ;; Contract: format-violation takes {:file :line :length} and max-length.
+  ;; Returns "path:line: line exceeds N characters (actual: M)".
   (testing "format-violation"
     (testing "formats standard violation correctly"
       (is (= "src/foo.clj:42: line exceeds 80 characters (actual: 95)"
-             (check/format-violation {:file "src/foo.clj" :line 42 :length 95} 80))))
+             (check/format-violation
+              {:file "src/foo.clj" :line 42 :length 95} 80))))
 
     (testing "formats very long line correctly"
       (is (= "test.clj:1: line exceeds 80 characters (actual: 500)"
-             (check/format-violation {:file "test.clj" :line 1 :length 500} 80))))
+             (check/format-violation
+              {:file "test.clj" :line 1 :length 500} 80))))
 
     (testing "formats deep path correctly"
-      (is (= "src/deep/nested/path/file.clj:100: line exceeds 120 characters (actual: 150)"
+      (is (= "a/b/c.clj:100: line exceeds 120 characters (actual: 150)"
              (check/format-violation
-              {:file "src/deep/nested/path/file.clj" :line 100 :length 150} 120))))
+              {:file "a/b/c.clj" :line 100 :length 150} 120))))
 
     (testing "handles different max-length values"
       (is (= "x.clj:1: line exceeds 40 characters (actual: 50)"
              (check/format-violation {:file "x.clj" :line 1 :length 50} 40))))))
 
 (deftest report-violations-test
-  ;; Tests that violations are written to stderr in the correct format.
-  ;; Contract: report-violations writes each violation to stderr and returns count.
+  ;; Tests violations are written to stderr in the correct format.
+  ;; Contract: writes each violation to stderr and returns count.
   (testing "report-violations"
     (testing "writes violations to stderr"
       (let [violations [{:file "a.clj" :line 1 :length 85}

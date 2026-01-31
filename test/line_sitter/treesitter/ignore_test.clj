@@ -65,7 +65,7 @@
 (deftest check-file-with-ignore-test
   ;; Tests end-to-end behavior of check-file-with-ignore.
   ;; Verifies that violations in ignored forms are not reported.
-  ;; Note: max-length 30 used to avoid the ignore marker (21 chars) being a violation.
+  ;; Note: max-length 30 avoids ignore marker (21 chars) being a violation.
   (testing "check-file-with-ignore"
     (testing "returns violations for non-ignored lines"
       (with-temp-dir [dir]

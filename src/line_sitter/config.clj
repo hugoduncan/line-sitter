@@ -66,15 +66,17 @@
 
 (defn load-config
   "Load configuration from file path, merging with defaults.
-  Returns merged and validated config. Throws ex-info on read or validation error."
+  Returns merged and validated config.
+  Throws ex-info on read or validation error."
   [config-path]
   (let [file-config (try
                       (edn/read-string (slurp config-path))
                       (catch Exception e
-                        (throw (ex-info (str "Failed to read config: " (.getMessage e))
-                                        {:type :config-error
-                                         :path config-path}
-                                        e))))]
+                        (throw
+                         (ex-info
+                          (str "Failed to read config: " (.getMessage e))
+                          {:type :config-error :path config-path}
+                          e))))]
     (when-not (map? file-config)
       (throw (ex-info "Invalid config: file must contain a map"
                       {:type :config-error

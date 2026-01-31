@@ -28,9 +28,10 @@
 
 (defn format-violation
   "Format a single violation for display.
-  Returns string in format: path/to/file.clj:42: line exceeds 80 characters (actual: 95)"
+  Format: path/to/file.clj:42: line exceeds 80 characters (actual: 95)"
   [{:keys [file line length]} max-length]
-  (str file ":" line ": line exceeds " max-length " characters (actual: " length ")"))
+  (str file ":" line ": line exceeds " max-length
+       " characters (actual: " length ")"))
 
 (defn report-violations
   "Write formatted violations to stderr.
@@ -47,8 +48,8 @@
   [file-count violation-count]
   (when (> file-count 1)
     (if (pos? violation-count)
-      (str "Checked " file-count " files, "
-           violation-count (if (= 1 violation-count) " violation" " violations") " found")
+      (str "Checked " file-count " files, " violation-count
+           (if (= 1 violation-count) " violation" " violations") " found")
       (str "Checked " file-count " files, all lines within limit"))))
 
 ;;; Ignore directive support

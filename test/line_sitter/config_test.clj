@@ -61,25 +61,33 @@
         (with-temp-dir [root]
           (let [config-path (fs/path root ".line-sitter.edn")]
             (spit (str config-path) "{:line-length 120}")
-            (is (= 120 (:line-length (config/load-config (str config-path)))))))))
+            (is
+             (= 120 (:line-length (config/load-config (str config-path)))))))))
     (testing "when config does not override :line-length"
       (testing "uses the default value"
         (with-temp-dir [root]
           (let [config-path (fs/path root ".line-sitter.edn")]
             (spit (str config-path) "{}")
-            (is (= 80 (:line-length (config/load-config (str config-path)))))))))
+            (is
+             (= 80 (:line-length (config/load-config (str config-path)))))))))
     (testing "when config overrides :extensions"
       (testing "replaces the default value"
         (with-temp-dir [root]
           (let [config-path (fs/path root ".line-sitter.edn")]
             (spit (str config-path) "{:extensions [\".clj\"]}")
-            (is (= [".clj"] (:extensions (config/load-config (str config-path)))))))))
+            (is
+             (=
+              [".clj"]
+              (:extensions (config/load-config (str config-path)))))))))
     (testing "when config has :indents"
       (testing "merges with default empty map"
         (with-temp-dir [root]
           (let [config-path (fs/path root ".line-sitter.edn")]
             (spit (str config-path) "{:indents {defn 1}}")
-            (is (= '{defn 1} (:indents (config/load-config (str config-path)))))))))
+            (is
+             (=
+              '{defn 1}
+              (:indents (config/load-config (str config-path)))))))))
     (testing "when config file is not valid EDN"
       (testing "throws ex-info with :type :config-error"
         (with-temp-dir [root]
@@ -111,38 +119,44 @@
           (is (thrown-with-msg?
                clojure.lang.ExceptionInfo
                #":line-length must be a positive integer"
-               (config/validate-config (assoc config/default-config :line-length 0))))))
+               (config/validate-config
+                (assoc config/default-config :line-length 0))))))
       (testing "with negative value"
         (testing "throws ex-info"
           (is (thrown-with-msg?
                clojure.lang.ExceptionInfo
                #":line-length must be a positive integer"
-               (config/validate-config (assoc config/default-config :line-length -1))))))
+               (config/validate-config
+                (assoc config/default-config :line-length -1))))))
       (testing "with string value"
         (testing "throws ex-info"
           (is (thrown-with-msg?
                clojure.lang.ExceptionInfo
                #":line-length must be a positive integer"
-               (config/validate-config (assoc config/default-config :line-length "80")))))))
+               (config/validate-config
+                (assoc config/default-config :line-length "80")))))))
     (testing "when :extensions is not a vector of strings"
       (testing "with non-vector"
         (testing "throws ex-info"
           (is (thrown-with-msg?
                clojure.lang.ExceptionInfo
                #":extensions must be a vector of strings"
-               (config/validate-config (assoc config/default-config :extensions "clj"))))))
+               (config/validate-config
+                (assoc config/default-config :extensions "clj"))))))
       (testing "with vector containing non-strings"
         (testing "throws ex-info"
           (is (thrown-with-msg?
                clojure.lang.ExceptionInfo
                #":extensions must be a vector of strings"
-               (config/validate-config (assoc config/default-config :extensions [:clj])))))))
+               (config/validate-config
+                (assoc config/default-config :extensions [:clj])))))))
     (testing "when :indents is not a map"
       (testing "throws ex-info"
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
              #":indents must be a map"
-             (config/validate-config (assoc config/default-config :indents []))))))))
+             (config/validate-config
+              (assoc config/default-config :indents []))))))))
 
 (deftest deep-merge-test
   (testing "deep-merge"

@@ -57,7 +57,7 @@
              (cli/parse-args ["--fix" "--stdout"]))))
 
     (testing "when --line-length is given without a value"
-      ;; babashka.cli treats the flag as boolean true then fails coercion to long
+      ;; babashka.cli treats flag as boolean true then fails coercion
       (testing "throws an exception with coercion failure message"
         (is (thrown-with-msg?
              clojure.lang.ExceptionInfo
@@ -79,8 +79,8 @@
   (testing "resolve-files"
     (testing "given a single file path"
       (testing "returns it as an absolute path"
-        (let [result (cli/resolve-files ["test-resources/file-discovery-test/single.clj"]
-                                        default-extensions)]
+        (let [path "test-resources/file-discovery-test/single.clj"
+              result (cli/resolve-files [path] default-extensions)]
           (is (= 1 (count result)))
           (is (str/ends-with? (first result) "single.clj"))
           (is (fs/absolute? (first result))))))
@@ -123,8 +123,8 @@
 
     (testing "given a file with non-matching extension"
       (testing "excludes it from results"
-        (let [result (cli/resolve-files ["test-resources/file-discovery-test/other.txt"]
-                                        default-extensions)]
+        (let [path "test-resources/file-discovery-test/other.txt"
+              result (cli/resolve-files [path] default-extensions)]
           (is (empty? result)))))
 
     (testing "given custom extensions"
