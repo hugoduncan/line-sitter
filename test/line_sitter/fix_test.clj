@@ -184,11 +184,11 @@
         (is (= "(a\n  (b\n    c\n    d\n    e)\n  f)" result))))
 
     (testing "leaves unbreakable atoms unchanged"
-      ;; Long string cannot be broken
+      ;; Long string cannot be broken - :def rule keeps name on first line
       (let [source "(def x \"long-string\")"
             result (fix/fix-source source {:line-length 10})]
         ;; Can break the form but not the string
-        (is (= "(def\n  x\n  \"long-string\")" result))))
+        (is (= "(def x\n  \"long-string\")" result))))
 
     (testing "handles already broken source"
       (let [source "(a\n  b\n  c)"]
@@ -199,3 +199,55 @@
             long-source (str "(" (apply str (repeat 40 "a ")) ")")]
         (is (= short-source (fix/fix-source short-source {})))
         (is (not= long-source (fix/fix-source long-source {})))))))
+
+(deftest indent-rules-test
+  ;; Verify that :defn and :def indent rules keep name on first line.
+  (testing "indent rules"
+    (testing "for defn"
+      (testing "keeps name on first line"
+        (let [source "(defn foo [x] (+ x 1))"
+              result (fix/fix-source source {:line-length 15})]
+          (is (= "(defn foo\n  [x]\n  (+ x 1))" result)))))
+
+    (testing "for defn-"
+      (testing "keeps name on first line"
+        (let [source "(defn- bar [x] x)"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(defn- bar\n  [x]\n  x)" result)))))
+
+    (testing "for defmacro"
+      (testing "keeps name on first line"
+        (let [source "(defmacro m [x] `(do ~x))"
+              result (fix/fix-source source {:line-length 15})]
+          (is (= "(defmacro m\n  [x]\n  `(do ~x))" result)))))
+
+    (testing "for def"
+      (testing "keeps name on first line"
+        (let [source "(def myvar 42)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(def myvar\n  42)" result)))))
+
+    (testing "for defonce"
+      (testing "keeps name on first line"
+        (let [source "(defonce state {})"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(defonce state\n  {})" result)))))
+
+    (testing "for defmulti"
+      (testing "keeps name on first line"
+        (let [source "(defmulti dispatch type)"
+              result (fix/fix-source source {:line-length 15})]
+          (is (= "(defmulti dispatch\n  type)" result)))))
+
+    (testing "for custom indent rule"
+      (testing "uses config :indents"
+        (let [source "(my-defn foo [x] x)"
+              config {:line-length 12 :indents {'my-defn :defn}}
+              result (fix/fix-source source config)]
+          (is (= "(my-defn foo\n  [x]\n  x)" result)))))
+
+    (testing "for non-special forms"
+      (testing "breaks all elements"
+        (let [source "(foo bar baz)"
+              result (fix/fix-source source {:line-length 8})]
+          (is (= "(foo\n  bar\n  baz)" result)))))))

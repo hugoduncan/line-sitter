@@ -32,6 +32,47 @@
   "Node types that can be broken across multiple lines."
   #{:list_lit :vec_lit :map_lit :set_lit})
 
+;;; Indent rules
+
+(def ^:private default-indent-rules
+  "Default mappings from form head symbols to indent rules.
+  :defn - keep name on first line
+  :def - keep name on first line"
+  {'defn      :defn
+   'defn-     :defn
+   'defmacro  :defn
+   'defmethod :defn
+   'deftest   :defn
+   'def       :def
+   'defonce   :def
+   'defmulti  :def})
+
+(defn- get-head-symbol
+  "Get the head symbol of a list_lit node as a symbol.
+  Returns nil if node is not a list_lit or has no sym_lit first child."
+  [node]
+  (when (= :list_lit (node/node-type node))
+    (let [first-child (first (node/named-children node))]
+      (when (= :sym_lit (node/node-type first-child))
+        (symbol (node/node-text first-child))))))
+
+(defn- get-indent-rule
+  "Look up the indent rule for a node.
+  Checks config's :indents map first, then falls back to defaults.
+  Returns nil if no rule applies (use default breaking)."
+  [node config]
+  (when-let [head-sym (get-head-symbol node)]
+    (or (get-in config [:indents head-sym])
+        (get default-indent-rules head-sym))))
+
+(defn- elements-to-keep-on-first-line
+  "Number of elements to keep on the first line based on indent rule.
+  :defn and :def keep 2 (head + name), default keeps 1 (head only)."
+  [rule]
+  (case rule
+    (:defn :def) 2
+    1))
+
 (defn breakable-node?
   "Returns true if node is a breakable collection type."
   [node]
@@ -105,26 +146,39 @@
 (defn break-form
   "Generate edits to break a form across multiple lines.
 
-  Applies the default breaking rule:
-  - First element stays on the same line as opening delimiter
-  - Remaining elements each get their own line with 2-space indent
-  - Closing delimiter stays on the same line as last element
+  Takes a node and optional config map. Applies indent rules based on the
+  form's head symbol:
+  - :defn/:def rules keep name on first line (2 elements)
+  - Default keeps only first element on first line
 
   Returns a vector of edits replacing whitespace between consecutive
   elements with newline+indent. Each edit is {:start n :end m :replacement s}.
   Returns nil if node is nil or has fewer than 2 children."
-  [node]
-  (when node
-    (let [children (node/named-children node)
-          indent-col (+ 2 (form-start-column node))
-          indent-str (str "\n" (apply str (repeat indent-col \space)))]
-      (when (> (count children) 1)
-        (into []
-              (map (fn [[prev-child next-child]]
-                     {:start (element-end-offset prev-child)
-                      :end (element-start-offset next-child)
-                      :replacement indent-str}))
-              (partition 2 1 children))))))
+  ([node] (break-form node {}))
+  ([node config]
+   (when node
+     (let [children (node/named-children node)
+           indent-col (+ 2 (form-start-column node))
+           indent-str (str "\n" (apply str (repeat indent-col \space)))
+           rule (get-indent-rule node config)
+           keep-count (elements-to-keep-on-first-line rule)
+           ;; Elements that need breaking: skip the ones kept on first line
+           breakable-children (drop keep-count children)]
+       (when (seq breakable-children)
+         (let [;; Get the last element that stays on first line
+               last-kept (nth children (dec keep-count))
+               ;; Create edit from last-kept to first breakable
+               first-edit {:start (element-end-offset last-kept)
+                           :end (element-start-offset (first breakable-children))
+                           :replacement indent-str}
+               ;; Create edits between remaining breakable children
+               remaining-edits (into []
+                                     (map (fn [[prev-child next-child]]
+                                            {:start (element-end-offset prev-child)
+                                             :end (element-start-offset next-child)
+                                             :replacement indent-str}))
+                                     (partition 2 1 breakable-children))]
+           (into [first-edit] remaining-edits)))))))
 
 ;;; Line length checking
 
@@ -172,7 +226,7 @@
                   breakable-form (find-breakable-form tree first-long-line)]
               (if-not breakable-form
                 src
-                (let [edits (break-form breakable-form)]
+                (let [edits (break-form breakable-form config)]
                   (if (empty? edits)
                     src
                     (recur (apply-edits src edits) (inc iteration))))))))))))
