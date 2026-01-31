@@ -58,13 +58,17 @@
 (defn native-image
   "Build native executable using GraalVM native-image.
   Requires GraalVM 25+ with native-image installed.
-  Set GRAALVM_HOME or JAVA_HOME to the GraalVM installation directory."
+  Set GRAALVM_HOME or JAVA_HOME to the GraalVM installation directory.
+  Throws an exception if the build fails."
   [_]
   (uber nil)
   (println "Building native image...")
   (let [native-image-cmd (find-native-image)
-        result (p/shell {:out :inherit :err :inherit}
+        result (p/shell {:out :inherit :err :inherit :continue true}
                         native-image-cmd "-jar" uber-file
-                        "-o" "target/line-breaker")]
-    (when (zero? (:exit result))
-      (println "Native image built: target/line-breaker"))))
+                        "-o" "target/line-breaker")
+        exit-code (:exit result)]
+    (if (zero? exit-code)
+      (println "Native image built: target/line-breaker")
+      (throw (ex-info "native-image build failed"
+                      {:exit-code exit-code})))))
