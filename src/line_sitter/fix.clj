@@ -110,6 +110,9 @@
   :try/:do keep 1 (body on next line)
   Default keeps 1 (head only)."
   [rule]
+  ;; Note: :cond uses default breaking (one element per line).
+  ;; Pair grouping for cond clauses, map entries, and binding pairs
+  ;; is intentionally deferred to a future enhancement.
   (case rule
     (:defn :def :fn :binding :if :case) 2
     (:cond :try :do) 1
