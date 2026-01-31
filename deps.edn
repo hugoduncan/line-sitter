@@ -32,6 +32,6 @@
    :ns-default build}
 
   :native
-  {:extra-deps {org.graalvm.nativeimage/svm {:mvn/version "23.1.2"}}
+  {:extra-deps {com.github.clj-easy/graal-build-time {:mvn/version "1.0.5"}}
    :jvm-opts   ["-Dclojure.compiler.direct-linking=true"
                 "-Dclojure.spec.skip-macros=true"]}}}
