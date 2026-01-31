@@ -294,6 +294,60 @@
               result (fix/fix-source source {:line-length 12})]
           (is (= "(loop [i 0]\n  (recur i))" result)))))
 
+    (testing "for if"
+      (testing "keeps test on first line"
+        (let [source "(if test then else)"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(if test\n  then\n  else)" result)))))
+
+    (testing "for if-not"
+      (testing "keeps test on first line"
+        (let [source "(if-not test a b)"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(if-not test\n  a\n  b)" result)))))
+
+    (testing "for when"
+      (testing "keeps test on first line"
+        (let [source "(when test body1 body2)"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(when test\n  body1\n  body2)" result)))))
+
+    (testing "for when-not"
+      (testing "keeps test on first line"
+        (let [source "(when-not test body)"
+              result (fix/fix-source source {:line-length 15})]
+          (is (= "(when-not test\n  body)" result)))))
+
+    (testing "for when-first"
+      (testing "keeps binding on first line"
+        (let [source "(when-first [x xs] body)"
+              result (fix/fix-source source {:line-length 18})]
+          (is (= "(when-first [x xs]\n  body)" result)))))
+
+    (testing "for case"
+      (testing "keeps test-expr on first line"
+        (let [source "(case x :a 1 :b 2)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(case x\n  :a\n  1\n  :b\n  2)" result)))))
+
+    (testing "for cond"
+      (testing "breaks each element separately (pair grouping deferred)"
+        (let [source "(cond t1 r1 t2 r2)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(cond\n  t1\n  r1\n  t2\n  r2)" result)))))
+
+    (testing "for condp"
+      (testing "breaks each element separately"
+        (let [source "(condp = x :a 1 :b 2)"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(condp\n  =\n  x\n  :a\n  1\n  :b\n  2)" result)))))
+
+    (testing "for cond->"
+      (testing "breaks each element separately"
+        (let [source "(cond-> x t1 f1 t2 f2)"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "(cond->\n  x\n  t1\n  f1\n  t2\n  f2)" result)))))
+
     (testing "for non-special forms"
       (testing "breaks all elements"
         (let [source "(foo bar baz)"
