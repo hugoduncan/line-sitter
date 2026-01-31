@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Run tests and builds but skip tagging and release'
+        type: boolean
+        default: false
+      release-notes:
+        description: 'Manual release notes (auto-generated if empty)'
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: ci
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  smoke-test:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: ${{ needs.build.outputs.darwin-artifact }}
+          - os: ubuntu-latest
+            artifact: ${{ needs.build.outputs.linux-artifact }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+
+      - name: Make binary executable
+        run: chmod +x ${{ matrix.artifact }}
+
+      - name: Test --help
+        run: ./${{ matrix.artifact }} --help
+
+      - name: Test file processing
+        run: ./${{ matrix.artifact }} test-resources/smoke-test.clj
+
+  release:
+    needs: [build, smoke-test]
+    if: ${{ !inputs.dry-run }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download darwin artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.darwin-artifact }}
+
+      - name: Download linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.linux-artifact }}
+
+      - name: Create tag
+        run: |
+          VERSION=$(git rev-list --count HEAD)
+          TAG="v0.1.${VERSION}"
+          git tag "$TAG"
+          git push origin "$TAG"
+          echo "TAG=${TAG}" >> "$GITHUB_ENV"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DARWIN="${{ needs.build.outputs.darwin-artifact }}"
+          LINUX="${{ needs.build.outputs.linux-artifact }}"
+
+          if [ -n "${{ inputs.release-notes }}" ]; then
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --notes "${{ inputs.release-notes }}" \
+              "$DARWIN" \
+              "${DARWIN}.sha256" \
+              "$LINUX" \
+              "${LINUX}.sha256"
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              "$DARWIN" \
+              "${DARWIN}.sha256" \
+              "$LINUX" \
+              "${LINUX}.sha256"
+          fi
