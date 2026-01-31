@@ -64,6 +64,7 @@ jobs:
       - name: Prepare release artifact
         id: artifact
         run: |
+          set -e
           VERSION=$(git rev-list --count HEAD)
           BINARY_NAME="line-breaker-0.1.${VERSION}-${{ matrix.platform }}"
           mv target/line-breaker "${BINARY_NAME}"
@@ -94,6 +95,7 @@ jobs:
 
       - name: Prepare release files
         run: |
+          set -e
           VERSION="${{ needs.build.outputs.version }}"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TAG=v0.1.${VERSION}" >> $GITHUB_ENV
