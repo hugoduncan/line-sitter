@@ -414,3 +414,72 @@
             result (fix/fix-source source {:line-length 10})]
         (is (str/includes? result "#_:line-sitter/ignore")
             "ignore marker is preserved")))))
+
+(deftest reader-macro-test
+  ;; Verify reader macros stay attached and breakable forms are handled.
+  (testing "reader macros"
+    (testing "for anonymous functions"
+      (testing "breaks when exceeding limit"
+        (let [source "#(foo a b c d)"
+              result (fix/fix-source source {:line-length 8})]
+          (is (= "#(foo\n  a\n  b\n  c\n  d)" result))))
+      (testing "stays attached when inside list"
+        (let [source "(map #(+ % 1) xs)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(map\n  #(+ % 1)\n  xs)" result)))))
+
+    (testing "for reader conditionals"
+      (testing "breaks when exceeding limit"
+        (let [source "#?(:clj a :cljs b)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "#?(:clj\n  a\n  :cljs\n  b)" result))))
+      (testing "splicing variant breaks"
+        (let [source "#?@(:clj [a] :cljs [b])"
+              result (fix/fix-source source {:line-length 12})]
+          (is (= "#?@(:clj\n  [a]\n  :cljs\n  [b])" result)))))
+
+    (testing "for quote"
+      (testing "stays attached to following form"
+        (let [source "(foo 'bar baz qux)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(foo\n  'bar\n  baz\n  qux)" result))))
+      (testing "inner list breaks correctly"
+        (let [source "'(a b c d e)"
+              result (fix/fix-source source {:line-length 6})]
+          (is (= "'(a\n   b\n   c\n   d\n   e)" result)))))
+
+    (testing "for syntax-quote"
+      (testing "stays attached to following form"
+        (let [source "(foo `bar baz qux)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(foo\n  `bar\n  baz\n  qux)" result)))))
+
+    (testing "for unquote"
+      (testing "stays attached to following form"
+        (let [source "`(foo ~bar baz)"
+              result (fix/fix-source source {:line-length 8})]
+          (is (= "`(foo\n   ~bar\n   baz)" result)))))
+
+    (testing "for unquote-splicing"
+      (testing "stays attached to following form"
+        (let [source "`(foo ~@bar baz)"
+              result (fix/fix-source source {:line-length 8})]
+          (is (= "`(foo\n   ~@bar\n   baz)" result)))))
+
+    (testing "for deref"
+      (testing "stays attached to following form"
+        (let [source "(foo @atom bar baz)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(foo\n  @atom\n  bar\n  baz)" result)))))
+
+    (testing "for var-quote"
+      (testing "stays attached to following form"
+        (let [source "(foo #'var bar baz)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(foo\n  #'var\n  bar\n  baz)" result)))))
+
+    (testing "for metadata"
+      (testing "stays attached to following form"
+        (let [source "(foo ^:key bar baz)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(foo\n  ^:key bar\n  baz)" result)))))))

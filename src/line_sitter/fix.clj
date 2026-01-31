@@ -30,8 +30,11 @@
 ;;; Breakable node detection
 
 (def ^:private breakable-types
-  "Node types that can be broken across multiple lines."
-  #{:list_lit :vec_lit :map_lit :set_lit})
+  "Node types that can be broken across multiple lines.
+  Includes anonymous functions and reader conditionals which have
+  list-like structure."
+  #{:list_lit :vec_lit :map_lit :set_lit
+    :anon_fn_lit :read_cond_lit :splicing_read_cond_lit})
 
 ;;; Indent rules
 
