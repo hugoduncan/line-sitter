@@ -33,7 +33,8 @@
     (testing "uses env var path when set and file exists"
       (let [temp-file (fs/create-temp-file {:suffix ".dylib"})]
         (try
-          (with-redefs [lang/get-env-lib-path (constantly (str temp-file))]
+          (with-redefs [lang/get-native-loader-path (constantly nil)
+                        lang/get-env-lib-path (constantly (str temp-file))]
             (let [[path source] (#'lang/find-library-path)]
               (is (= :env-var source)
                   "reports :env-var as the source")
@@ -43,7 +44,8 @@
             (fs/delete temp-file)))))
 
     (testing "falls back to classpath when env var path does not exist"
-      (with-redefs [lang/get-env-lib-path (constantly "/nonexistent/lib.dylib")]
+      (with-redefs [lang/get-native-loader-path (constantly nil)
+                    lang/get-env-lib-path (constantly "/nonexistent/lib.dylib")]
         (let [[_path source] (#'lang/find-library-path)]
           (is (= :classpath source)
               "falls back to classpath when env var path missing"))))))
@@ -53,7 +55,8 @@
   ;; Uses with-redefs to simulate missing library scenario.
   (testing "find-library-path"
     (testing "throws ex-info with useful data when library not found"
-      (with-redefs [lang/get-env-lib-path (constantly nil)
+      (with-redefs [lang/get-native-loader-path (constantly nil)
+                    lang/get-env-lib-path (constantly nil)
                     lang/extract-resource-to-temp (constantly nil)
                     lang/find-in-library-path (constantly nil)]
         (let [ex (try

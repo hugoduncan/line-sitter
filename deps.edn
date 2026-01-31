@@ -27,11 +27,12 @@
    :main-opts   ["-m" "kaocha.runner"]}
 
   :build
-  {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.5"}}
+  {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.5"}
+                babashka/process {:mvn/version "0.5.22"}}
    :jvm-opts   ["--enable-native-access=ALL-UNNAMED"]
    :ns-default build}
 
   :native
-  {:extra-deps {org.graalvm.nativeimage/svm {:mvn/version "23.1.2"}}
+  {:extra-deps {com.github.clj-easy/graal-build-time {:mvn/version "1.0.5"}}
    :jvm-opts   ["-Dclojure.compiler.direct-linking=true"
                 "-Dclojure.spec.skip-macros=true"]}}}

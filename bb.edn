@@ -31,9 +31,9 @@
 
   import-kondo-config
   {:doc "Import clj-kondo configs from dependencies"
-   :task (do
+   :task (let [cp (-> (shell {:out :string} "clojure -Spath") :out str/trim)]
            (println "Importing clj-kondo configs from dependencies...")
-           (shell "clj-kondo --copy-configs --dependencies --lint \"$(clojure -Spath)\""))}
+           (shell "clj-kondo" "--copy-configs" "--dependencies" "--lint" cp))}
 
   build-native
   {:doc "Build tree-sitter native libraries for current platform"
@@ -42,6 +42,10 @@
   javac
   {:doc "Compile Java sources (NativeLoader for jtreesitter)"
    :task (shell "clojure -T:build javac")}
+
+  native-image
+  {:doc "Build native executable using GraalVM native-image"
+   :task (shell "clojure -T:build native-image")}
 
   line-length
   {:doc "Check or fix line length violations"
