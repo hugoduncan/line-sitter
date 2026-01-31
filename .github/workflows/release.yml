@@ -9,6 +9,8 @@ permissions:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    outputs:
+      version: ${{ steps.artifact.outputs.version }}
     strategy:
       matrix:
         include:
@@ -60,6 +62,7 @@ jobs:
         run: ./target/line-breaker --help
 
       - name: Prepare release artifact
+        id: artifact
         run: |
           VERSION=$(git rev-list --count HEAD)
           BINARY_NAME="line-breaker-0.1.${VERSION}-${{ matrix.platform }}"
@@ -70,6 +73,7 @@ jobs:
             shasum -a 256 "${BINARY_NAME}" > "${BINARY_NAME}.sha256"
           fi
           echo "BINARY_NAME=${BINARY_NAME}" >> $GITHUB_ENV
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -83,10 +87,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -94,7 +94,7 @@ jobs:
 
       - name: Prepare release files
         run: |
-          VERSION=$(git rev-list --count HEAD)
+          VERSION="${{ needs.build.outputs.version }}"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TAG=v0.1.${VERSION}" >> $GITHUB_ENV
           mkdir -p release
