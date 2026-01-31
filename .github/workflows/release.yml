@@ -3,6 +3,9 @@ name: Release Build
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -75,3 +78,33 @@ jobs:
           path: |
             ${{ env.BINARY_NAME }}
             ${{ env.BINARY_NAME }}.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          VERSION=$(git rev-list --count HEAD)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "TAG=v0.1.${VERSION}" >> $GITHUB_ENV
+          mkdir -p release
+          find artifacts -type f -exec mv {} release/ \;
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ env.TAG }}" \
+            --title "${{ env.TAG }}" \
+            --generate-notes \
+            release/*
