@@ -576,6 +576,57 @@
               result (fix/fix-source source {:line-length 14})]
           (is (= "(cond->> val\n  t1 f1\n  t2 f2)" result)))))))
 
+(deftest binding-vector-pair-grouping-test
+  ;; Verify binding vectors use pair grouping when broken.
+  (testing "binding vector pair grouping"
+    (testing "for let"
+      (testing "keeps symbol-value pairs together"
+        (let [source "(let [x 1 y 2 z 3] body)"
+              result (fix/fix-source source {:line-length 14})]
+          (is (= "(let [x 1\n      y 2\n      z 3]\n  body)" result))))
+      (testing "aligns to bracket position"
+        (let [source "  (let [a 1 b 2] x)"
+              result (fix/fix-source source {:line-length 14})]
+          (is (= "  (let [a 1\n        b 2]\n    x)" result)))))
+
+    (testing "for loop"
+      (testing "keeps symbol-value pairs together"
+        (let [source "(loop [i 0 n 10] (recur i n))"
+              result (fix/fix-source source {:line-length 14})]
+          (is (= "(loop [i 0\n       n 10]\n  (recur i n))" result)))))
+
+    (testing "for doseq"
+      (testing "keeps binding pairs together"
+        (let [source "(doseq [x xs y ys] (prn x y))"
+              result (fix/fix-source source {:line-length 16})]
+          (is (= "(doseq [x xs\n        y ys]\n  (prn x y))" result)))))
+
+    (testing "for for"
+      (testing "keeps binding pairs together"
+        (let [source "(for [x xs y ys] [x y])"
+              result (fix/fix-source source {:line-length 14})]
+          (is (= "(for [x xs\n      y ys]\n  [x y])" result)))))
+
+    (testing "standalone vectors"
+      (testing "do not use pair grouping"
+        (let [source "[a 1 b 2 c 3]"
+              result (fix/fix-source source {:line-length 8})]
+          (is (= "[a\n  1\n  b\n  2\n  c\n  3]" result)
+              "standalone vectors break each element"))))
+
+    (testing "nested bindings"
+      (testing "each binding vector grouped independently"
+        (let [source "(let [x (let [a 1 b 2] a)] x)"
+              result (fix/fix-source source {:line-length 18})]
+          (is (str/includes? result "[a 1\n")
+              "inner binding vector uses pair grouping"))))
+
+    (testing "destructuring"
+      (testing "keeps pattern-value pairs together"
+        (let [source "(let [{:keys [a]} m x 1] body)"
+              result (fix/fix-source source {:line-length 18})]
+          (is (= "(let [{:keys [a]} m\n      x 1]\n  body)" result)))))))
+
 (deftest edge-cases-test
   ;; Verify edge cases: empty, single-element, already-formatted.
   (testing "edge cases"

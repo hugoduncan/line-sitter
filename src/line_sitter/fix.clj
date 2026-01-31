@@ -101,6 +101,16 @@
     (or (get-in config [:indents head-sym])
         (get default-indent-rules head-sym))))
 
+(defn- binding-vector?
+  "Returns true if node is the binding vector of a :binding form.
+  A binding vector is a vec_lit that is the second child of a form
+  with the :binding indent rule (let, for, doseq, loop, etc.)."
+  [node config]
+  (and (= :vec_lit (node/node-type node))
+       (when-let [parent (node/node-parent node)]
+         (and (= :binding (get-indent-rule parent config))
+              (= node (second (node/named-children parent)))))))
+
 (defn- elements-to-keep-on-first-line
   "Number of elements to keep on the first line based on indent rule or node type.
   :defn/:def keep 2 (head + name)
@@ -113,28 +123,31 @@
   :cond-> keeps 2 (head + initial-expr, pair group remaining)
   :try/:do keep 1 (body on next line)
   :map keeps 2 (first key-value pair)
+  :binding-vector keeps 2 (first binding pair)
   Default keeps 1 (head only)."
   [rule]
   (case rule
-    (:defn :def :fn :binding :if :case :cond-> :map) 2
+    (:defn :def :fn :binding :if :case :cond-> :map :binding-vector) 2
     :condp 3
     (:cond :try :do) 1
     1))
 
 (defn- get-effective-rule
   "Get the effective indent rule for a node, considering both head symbol
-  and node type. Maps use :map rule for pair grouping."
+  and node type. Maps use :map rule, binding vectors use :binding-vector."
   [node config]
   (or (get-indent-rule node config)
       (when (= :map_lit (node/node-type node))
-        :map)))
+        :map)
+      (when (binding-vector? node config)
+        :binding-vector)))
 
 (defn- uses-pair-grouping?
   "Returns true if the node should use pair grouping when breaking.
   Pair grouping keeps related pairs together (key-value, test-result, etc.)."
   [node config]
   (let [rule (get-effective-rule node config)]
-    (#{:cond :condp :case :cond-> :map} rule)))
+    (#{:cond :condp :case :cond-> :map :binding-vector} rule)))
 
 (defn breakable-node?
   "Returns true if node is a breakable collection type."
@@ -192,6 +205,18 @@
                                    (node/named-children node))]
       (into (vec self) children-results))))
 
+(defn find-breakable-forms
+  "Find all breakable forms containing the given line.
+
+  Takes a parsed tree, a 1-indexed line number, and optionally a set of
+  ignored ranges. Returns a vector of breakable nodes from outermost to
+  innermost that span that line and have consecutive children on that line.
+  Forms within ignored ranges are skipped."
+  ([tree line]
+   (find-breakable-forms tree line #{}))
+  ([tree line ignored-ranges]
+   (find-breakable-forms-on-line (node/root-node tree) line ignored-ranges)))
+
 (defn find-breakable-form
   "Find the outermost breakable form containing the given line.
 
@@ -203,7 +228,7 @@
   ([tree line]
    (find-breakable-form tree line #{}))
   ([tree line ignored-ranges]
-   (first (find-breakable-forms-on-line (node/root-node tree) line ignored-ranges))))
+   (first (find-breakable-forms tree line ignored-ranges))))
 
 ;;; Form breaking
 
@@ -283,6 +308,16 @@
                   (make-break-edit prev-child next-child indent-col)))
           all-pairs)))
 
+(defn- indent-column
+  "Calculate the indent column for broken elements.
+  :binding-vector uses +1 (align to first element after bracket).
+  All other forms use +2 (standard Clojure indentation)."
+  [node rule]
+  (let [base-col (form-start-column node)]
+    (if (= :binding-vector rule)
+      (+ 1 base-col)
+      (+ 2 base-col))))
+
 (defn break-form
   "Generate edits to break a form across multiple lines.
 
@@ -304,8 +339,8 @@
   ([node config]
    (when node
      (let [children (node/named-children node)
-           indent-col (+ 2 (form-start-column node))
            rule (get-effective-rule node config)
+           indent-col (indent-column node rule)
            keep-count (elements-to-keep-on-first-line rule)
            ;; Elements that need breaking: skip the ones kept on first line
            breakable-children (drop keep-count children)]
@@ -339,6 +374,20 @@
   "Maximum number of breaking passes to prevent infinite loops."
   100)
 
+(defn- try-break-forms
+  "Try breaking each form in order until one produces a change.
+  Returns the new source if a form was successfully broken, nil otherwise."
+  [source forms config]
+  (reduce
+   (fn [_ form]
+     (let [edits (break-form form config)]
+       (when (seq edits)
+         (let [new-source (apply-edits source edits)]
+           (when (not= new-source source)
+             (reduced new-source))))))
+   nil
+   forms))
+
 (defn fix-source
   "Fix line length violations in source code.
 
@@ -349,8 +398,8 @@
   The algorithm:
   1. Find lines exceeding max-length
   2. Collect ignored byte ranges (re-collected each pass since byte positions shift)
-  3. Find outermost breakable form on first violating line (skipping ignored)
-  4. Break that form
+  3. Find breakable forms on first violating line (outermost to innermost)
+  4. Try breaking each form until one produces a change
   5. Re-parse and repeat until no violations or no breakable forms"
   [source config]
   (let [max-length (get config :line-length 80)]
@@ -365,10 +414,8 @@
                   ;; Collect ignored ranges each pass since byte positions shift after edits
                   ignored-ranges (check/find-ignored-byte-ranges tree)
                   first-long-line (first long-lines)
-                  breakable-form (find-breakable-form tree first-long-line ignored-ranges)]
-              (if-not breakable-form
-                source
-                (let [edits (break-form breakable-form config)]
-                  (if (empty? edits)
-                    source
-                    (recur (apply-edits source edits) (inc iteration))))))))))))
+                  breakable-forms (find-breakable-forms tree first-long-line ignored-ranges)
+                  new-source (try-break-forms source breakable-forms config)]
+              (if new-source
+                (recur new-source (inc iteration))
+                source))))))))
