@@ -483,3 +483,66 @@
         (let [source "(foo ^:key bar baz)"
               result (fix/fix-source source {:line-length 10})]
           (is (= "(foo\n  ^:key bar\n  baz)" result)))))))
+
+(deftest comment-handling-test
+  ;; Verify inline comments stay attached and don't cause extra blank lines.
+  (testing "comment handling"
+    (testing "keeps end-of-line comment attached to preceding element"
+      (let [source "(foo a ; comment\nb c)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (= "(foo\n  a ; comment\n  b\n  c)" result))))
+
+    (testing "keeps comment attached to head element"
+      (let [source "(foo ; after head\na b c)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (= "(foo ; after head\n  a\n  b\n  c)" result))))
+
+    (testing "handles multiple comments"
+      (let [source "(foo a ; one\nb ; two\nc)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (= "(foo\n  a ; one\n  b ; two\n  c)" result))))
+
+    (testing "does not introduce extra blank lines"
+      (let [source "(foo a ; comment\nb)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (not (str/includes? result "\n\n"))
+            "no double newlines in output")))
+
+    (testing "preserves comment content"
+      (let [source "(foo a ; important note\nb)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "; important note")
+            "comment text is preserved")))))
+
+(deftest edge-cases-test
+  ;; Verify edge cases: empty, single-element, already-formatted.
+  (testing "edge cases"
+    (testing "for empty collections"
+      (testing "leaves empty list unchanged"
+        (is (= "()" (fix/fix-source "()" {:line-length 1}))))
+      (testing "leaves empty vector unchanged"
+        (is (= "[]" (fix/fix-source "[]" {:line-length 1}))))
+      (testing "leaves empty map unchanged"
+        (is (= "{}" (fix/fix-source "{}" {:line-length 1}))))
+      (testing "leaves empty set unchanged"
+        (is (= "#{}" (fix/fix-source "#{}" {:line-length 1})))))
+
+    (testing "for single-element collections"
+      (testing "leaves single-element list unchanged"
+        (is (= "(a)" (fix/fix-source "(a)" {:line-length 2}))))
+      (testing "leaves single-element vector unchanged"
+        (is (= "[x]" (fix/fix-source "[x]" {:line-length 2}))))
+      (testing "leaves map with one pair unchanged when within limit"
+        ;; Map with k v has 2 children, stays unchanged if within limit
+        (is (= "{k v}" (fix/fix-source "{k v}" {:line-length 10})))))
+
+    (testing "for already-formatted code"
+      (testing "leaves properly broken list unchanged"
+        (let [source "(a\n  b\n  c)"]
+          (is (= source (fix/fix-source source {:line-length 80})))))
+      (testing "leaves properly broken vector unchanged"
+        (let [source "[a\n b\n c]"]
+          (is (= source (fix/fix-source source {:line-length 80})))))
+      (testing "leaves properly broken defn unchanged"
+        (let [source "(defn foo\n  [x]\n  (+ x 1))"]
+          (is (= source (fix/fix-source source {:line-length 80}))))))))

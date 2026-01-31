@@ -194,6 +194,40 @@
   [node]
   (:column (node/node-position node)))
 
+(defn- comment-node?
+  "Returns true if node is a comment."
+  [node]
+  (= :comment (node/node-type node)))
+
+(defn- same-line?
+  "Returns true if two nodes start on the same line."
+  [node1 node2]
+  (= (node-start-line node1) (node-start-line node2)))
+
+(defn- make-break-edit
+  "Create a break edit between two children.
+  Returns nil if no edit is needed (comment attached to preceding element).
+  When prev-child is a comment (contains trailing newline), only inserts indent."
+  [prev-child next-child indent-col]
+  (let [indent-spaces (apply str (repeat indent-col \space))]
+    (cond
+      ;; Comment on same line as prev: keep them together (no edit)
+      (and (comment-node? next-child)
+           (same-line? prev-child next-child))
+      nil
+
+      ;; Prev is comment (ends with newline): just add indent
+      (comment-node? prev-child)
+      {:start (element-end-offset prev-child)
+       :end (element-start-offset next-child)
+       :replacement indent-spaces}
+
+      ;; Normal case: add newline + indent
+      :else
+      {:start (element-end-offset prev-child)
+       :end (element-start-offset next-child)
+       :replacement (str "\n" indent-spaces)})))
+
 (defn break-form
   "Generate edits to break a form across multiple lines.
 
@@ -201,6 +235,9 @@
   form's head symbol:
   - :defn/:def rules keep name on first line (2 elements)
   - Default keeps only first element on first line
+
+  Comments on the same line as the preceding element stay attached.
+  Comments include their trailing newline, so no extra newline is added after.
 
   Returns a vector of edits replacing whitespace between consecutive
   elements with newline+indent. Each edit is {:start n :end m :replacement s}.
@@ -210,7 +247,6 @@
    (when node
      (let [children (node/named-children node)
            indent-col (+ 2 (form-start-column node))
-           indent-str (str "\n" (apply str (repeat indent-col \space)))
            rule (get-indent-rule node config)
            keep-count (elements-to-keep-on-first-line rule)
            ;; Elements that need breaking: skip the ones kept on first line
@@ -218,18 +254,16 @@
        (when (seq breakable-children)
          (let [;; Get the last element that stays on first line
                last-kept (nth children (dec keep-count))
-               ;; Create edit from last-kept to first breakable
-               first-edit {:start (element-end-offset last-kept)
-                           :end (element-start-offset (first breakable-children))
-                           :replacement indent-str}
-               ;; Create edits between remaining breakable children
-               remaining-edits (into []
-                                     (map (fn [[prev-child next-child]]
-                                            {:start (element-end-offset prev-child)
-                                             :end (element-start-offset next-child)
-                                             :replacement indent-str}))
-                                     (partition 2 1 breakable-children))]
-           (into [first-edit] remaining-edits)))))))
+               ;; All pairs to potentially break (including first)
+               all-pairs (cons [last-kept (first breakable-children)]
+                               (partition 2 1 breakable-children))
+               ;; Generate edits, filtering out nils (attached comments)
+               edits (into []
+                           (keep (fn [[prev-child next-child]]
+                                   (make-break-edit prev-child next-child indent-col)))
+                           all-pairs)]
+           (when (seq edits)
+             edits)))))))
 
 ;;; Line length checking
 
