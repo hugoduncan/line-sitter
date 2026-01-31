@@ -2618,7 +2618,7 @@
       "type": "java.util.zip.ZipOutputStream"
     },
     {
-      "type": "line_sitter.check$check_file_with_ignore",
+      "type": "line_breaker.check$check_file_with_ignore",
       "methods": [
         {
           "name": "<init>",
@@ -2627,7 +2627,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$check_line_lengths",
+      "type": "line_breaker.check$check_line_lengths",
       "methods": [
         {
           "name": "<init>",
@@ -2636,7 +2636,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$collect_ignored_byte_ranges",
+      "type": "line_breaker.check$collect_ignored_byte_ranges",
       "methods": [
         {
           "name": "<init>",
@@ -2645,7 +2645,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$collect_ignored_ranges",
+      "type": "line_breaker.check$collect_ignored_ranges",
       "methods": [
         {
           "name": "<init>",
@@ -2654,7 +2654,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$eval495",
+      "type": "line_breaker.check$eval495",
       "methods": [
         {
           "name": "<init>",
@@ -2663,7 +2663,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$eval497",
+      "type": "line_breaker.check$eval497",
       "methods": [
         {
           "name": "<init>",
@@ -2672,7 +2672,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$eval501",
+      "type": "line_breaker.check$eval501",
       "methods": [
         {
           "name": "<init>",
@@ -2681,7 +2681,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$eval530",
+      "type": "line_breaker.check$eval530",
       "methods": [
         {
           "name": "<init>",
@@ -2690,7 +2690,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$eval604",
+      "type": "line_breaker.check$eval604",
       "methods": [
         {
           "name": "<init>",
@@ -2699,7 +2699,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$filter_violations",
+      "type": "line_breaker.check$filter_violations",
       "methods": [
         {
           "name": "<init>",
@@ -2708,7 +2708,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$find_ignored_byte_ranges",
+      "type": "line_breaker.check$find_ignored_byte_ranges",
       "methods": [
         {
           "name": "<init>",
@@ -2717,7 +2717,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$find_ignored_ranges",
+      "type": "line_breaker.check$find_ignored_ranges",
       "methods": [
         {
           "name": "<init>",
@@ -2726,7 +2726,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$find_violations",
+      "type": "line_breaker.check$find_violations",
       "methods": [
         {
           "name": "<init>",
@@ -2735,7 +2735,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$format_summary",
+      "type": "line_breaker.check$format_summary",
       "methods": [
         {
           "name": "<init>",
@@ -2744,7 +2744,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$format_violation",
+      "type": "line_breaker.check$format_violation",
       "methods": [
         {
           "name": "<init>",
@@ -2753,7 +2753,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$ignore_marker_QMARK_",
+      "type": "line_breaker.check$ignore_marker_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -2762,7 +2762,7 @@
       ]
     },
     {
-      "type": "line_sitter.check$report_violations",
+      "type": "line_breaker.check$report_violations",
       "methods": [
         {
           "name": "<init>",
@@ -2771,10 +2771,10 @@
       ]
     },
     {
-      "type": "line_sitter.check__init"
+      "type": "line_breaker.check__init"
     },
     {
-      "type": "line_sitter.cli$eval658",
+      "type": "line_breaker.cli$eval658",
       "methods": [
         {
           "name": "<init>",
@@ -2783,7 +2783,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$eval660",
+      "type": "line_breaker.cli$eval660",
       "methods": [
         {
           "name": "<init>",
@@ -2792,7 +2792,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$eval664",
+      "type": "line_breaker.cli$eval664",
       "methods": [
         {
           "name": "<init>",
@@ -2801,7 +2801,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$eval948",
+      "type": "line_breaker.cli$eval948",
       "methods": [
         {
           "name": "<init>",
@@ -2810,7 +2810,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$glob_pattern_for_extensions",
+      "type": "line_breaker.cli$glob_pattern_for_extensions",
       "methods": [
         {
           "name": "<init>",
@@ -2819,7 +2819,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$matches_extension_QMARK_",
+      "type": "line_breaker.cli$matches_extension_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -2828,7 +2828,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$parse_args",
+      "type": "line_breaker.cli$parse_args",
       "methods": [
         {
           "name": "<init>",
@@ -2837,7 +2837,7 @@
       ]
     },
     {
-      "type": "line_sitter.cli$resolve_files",
+      "type": "line_breaker.cli$resolve_files",
       "methods": [
         {
           "name": "<init>",
@@ -2846,10 +2846,10 @@
       ]
     },
     {
-      "type": "line_sitter.cli__init"
+      "type": "line_breaker.cli__init"
     },
     {
-      "type": "line_sitter.config$deep_merge",
+      "type": "line_breaker.config$deep_merge",
       "methods": [
         {
           "name": "<init>",
@@ -2858,7 +2858,7 @@
       ]
     },
     {
-      "type": "line_sitter.config$eval968",
+      "type": "line_breaker.config$eval968",
       "methods": [
         {
           "name": "<init>",
@@ -2867,7 +2867,7 @@
       ]
     },
     {
-      "type": "line_sitter.config$eval970",
+      "type": "line_breaker.config$eval970",
       "methods": [
         {
           "name": "<init>",
@@ -2876,7 +2876,7 @@
       ]
     },
     {
-      "type": "line_sitter.config$eval974",
+      "type": "line_breaker.config$eval974",
       "methods": [
         {
           "name": "<init>",
@@ -2885,7 +2885,7 @@
       ]
     },
     {
-      "type": "line_sitter.config$find_config_file",
+      "type": "line_breaker.config$find_config_file",
       "methods": [
         {
           "name": "<init>",
@@ -2894,7 +2894,7 @@
       ]
     },
     {
-      "type": "line_sitter.config$load_config",
+      "type": "line_breaker.config$load_config",
       "methods": [
         {
           "name": "<init>",
@@ -2903,7 +2903,7 @@
       ]
     },
     {
-      "type": "line_sitter.config$validate_config",
+      "type": "line_breaker.config$validate_config",
       "methods": [
         {
           "name": "<init>",
@@ -2912,10 +2912,10 @@
       ]
     },
     {
-      "type": "line_sitter.config__init"
+      "type": "line_breaker.config__init"
     },
     {
-      "type": "line_sitter.fix$apply_edits",
+      "type": "line_breaker.fix$apply_edits",
       "methods": [
         {
           "name": "<init>",
@@ -2924,7 +2924,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$binding_vector_QMARK_",
+      "type": "line_breaker.fix$binding_vector_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -2933,7 +2933,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$break_form",
+      "type": "line_breaker.fix$break_form",
       "methods": [
         {
           "name": "<init>",
@@ -2942,7 +2942,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$breakable_node_QMARK_",
+      "type": "line_breaker.fix$breakable_node_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -2951,7 +2951,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$comment_node_QMARK_",
+      "type": "line_breaker.fix$comment_node_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -2960,7 +2960,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$element_end_offset",
+      "type": "line_breaker.fix$element_end_offset",
       "methods": [
         {
           "name": "<init>",
@@ -2969,7 +2969,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$element_start_offset",
+      "type": "line_breaker.fix$element_start_offset",
       "methods": [
         {
           "name": "<init>",
@@ -2978,7 +2978,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$elements_to_keep_on_first_line",
+      "type": "line_breaker.fix$elements_to_keep_on_first_line",
       "methods": [
         {
           "name": "<init>",
@@ -2987,7 +2987,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$eval993",
+      "type": "line_breaker.fix$eval993",
       "methods": [
         {
           "name": "<init>",
@@ -2996,7 +2996,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$eval995",
+      "type": "line_breaker.fix$eval995",
       "methods": [
         {
           "name": "<init>",
@@ -3005,7 +3005,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$eval999",
+      "type": "line_breaker.fix$eval999",
       "methods": [
         {
           "name": "<init>",
@@ -3014,7 +3014,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$find_breakable_form",
+      "type": "line_breaker.fix$find_breakable_form",
       "methods": [
         {
           "name": "<init>",
@@ -3023,7 +3023,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$find_breakable_forms",
+      "type": "line_breaker.fix$find_breakable_forms",
       "methods": [
         {
           "name": "<init>",
@@ -3032,7 +3032,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$find_breakable_forms_on_line",
+      "type": "line_breaker.fix$find_breakable_forms_on_line",
       "methods": [
         {
           "name": "<init>",
@@ -3041,7 +3041,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$find_long_lines",
+      "type": "line_breaker.fix$find_long_lines",
       "methods": [
         {
           "name": "<init>",
@@ -3050,7 +3050,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$fix_source",
+      "type": "line_breaker.fix$fix_source",
       "methods": [
         {
           "name": "<init>",
@@ -3059,7 +3059,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$form_needs_breaking_on_line_QMARK_",
+      "type": "line_breaker.fix$form_needs_breaking_on_line_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -3068,7 +3068,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$form_start_column",
+      "type": "line_breaker.fix$form_start_column",
       "methods": [
         {
           "name": "<init>",
@@ -3077,7 +3077,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$generate_paired_edits",
+      "type": "line_breaker.fix$generate_paired_edits",
       "methods": [
         {
           "name": "<init>",
@@ -3086,7 +3086,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$generate_sequential_edits",
+      "type": "line_breaker.fix$generate_sequential_edits",
       "methods": [
         {
           "name": "<init>",
@@ -3095,7 +3095,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$get_effective_rule",
+      "type": "line_breaker.fix$get_effective_rule",
       "methods": [
         {
           "name": "<init>",
@@ -3104,7 +3104,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$get_head_symbol",
+      "type": "line_breaker.fix$get_head_symbol",
       "methods": [
         {
           "name": "<init>",
@@ -3113,7 +3113,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$get_indent_rule",
+      "type": "line_breaker.fix$get_indent_rule",
       "methods": [
         {
           "name": "<init>",
@@ -3122,7 +3122,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$indent_column",
+      "type": "line_breaker.fix$indent_column",
       "methods": [
         {
           "name": "<init>",
@@ -3131,7 +3131,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$make_break_edit",
+      "type": "line_breaker.fix$make_break_edit",
       "methods": [
         {
           "name": "<init>",
@@ -3140,7 +3140,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$node_contains_line_QMARK_",
+      "type": "line_breaker.fix$node_contains_line_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -3149,7 +3149,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$node_in_ignored_range_QMARK_",
+      "type": "line_breaker.fix$node_in_ignored_range_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -3158,7 +3158,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$node_start_line",
+      "type": "line_breaker.fix$node_start_line",
       "methods": [
         {
           "name": "<init>",
@@ -3167,7 +3167,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$same_line_QMARK_",
+      "type": "line_breaker.fix$same_line_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -3176,7 +3176,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$try_break_forms",
+      "type": "line_breaker.fix$try_break_forms",
       "methods": [
         {
           "name": "<init>",
@@ -3185,7 +3185,7 @@
       ]
     },
     {
-      "type": "line_sitter.fix$uses_pair_grouping_QMARK_",
+      "type": "line_breaker.fix$uses_pair_grouping_QMARK_",
       "methods": [
         {
           "name": "<init>",
@@ -3194,10 +3194,10 @@
       ]
     },
     {
-      "type": "line_sitter.fix__init"
+      "type": "line_breaker.fix__init"
     },
     {
-      "type": "line_sitter.main$_main",
+      "type": "line_breaker.main$_main",
       "methods": [
         {
           "name": "<init>",
@@ -3206,7 +3206,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval1084",
+      "type": "line_breaker.main$eval1084",
       "methods": [
         {
           "name": "<init>",
@@ -3215,7 +3215,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval136",
+      "type": "line_breaker.main$eval136",
       "methods": [
         {
           "name": "<init>",
@@ -3224,7 +3224,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval138",
+      "type": "line_breaker.main$eval138",
       "methods": [
         {
           "name": "<init>",
@@ -3233,7 +3233,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval142",
+      "type": "line_breaker.main$eval142",
       "methods": [
         {
           "name": "<init>",
@@ -3242,7 +3242,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval493",
+      "type": "line_breaker.main$eval493",
       "methods": [
         {
           "name": "<init>",
@@ -3251,7 +3251,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval656",
+      "type": "line_breaker.main$eval656",
       "methods": [
         {
           "name": "<init>",
@@ -3260,7 +3260,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval966",
+      "type": "line_breaker.main$eval966",
       "methods": [
         {
           "name": "<init>",
@@ -3269,7 +3269,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$eval991",
+      "type": "line_breaker.main$eval991",
       "methods": [
         {
           "name": "<init>",
@@ -3278,7 +3278,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$format_error",
+      "type": "line_breaker.main$format_error",
       "methods": [
         {
           "name": "<init>",
@@ -3287,7 +3287,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$get_config_dir",
+      "type": "line_breaker.main$get_config_dir",
       "methods": [
         {
           "name": "<init>",
@@ -3296,7 +3296,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$process_check",
+      "type": "line_breaker.main$process_check",
       "methods": [
         {
           "name": "<init>",
@@ -3305,7 +3305,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$process_files",
+      "type": "line_breaker.main$process_files",
       "methods": [
         {
           "name": "<init>",
@@ -3314,7 +3314,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$process_fix",
+      "type": "line_breaker.main$process_fix",
       "methods": [
         {
           "name": "<init>",
@@ -3323,7 +3323,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$process_stdout",
+      "type": "line_breaker.main$process_stdout",
       "methods": [
         {
           "name": "<init>",
@@ -3332,7 +3332,7 @@
       ]
     },
     {
-      "type": "line_sitter.main$run",
+      "type": "line_breaker.main$run",
       "methods": [
         {
           "name": "<init>",
@@ -3341,10 +3341,10 @@
       ]
     },
     {
-      "type": "line_sitter.main__init"
+      "type": "line_breaker.main__init"
     },
     {
-      "type": "line_sitter.platform$detect_arch",
+      "type": "line_breaker.platform$detect_arch",
       "methods": [
         {
           "name": "<init>",
@@ -3353,7 +3353,7 @@
       ]
     },
     {
-      "type": "line_sitter.platform$detect_os",
+      "type": "line_breaker.platform$detect_os",
       "methods": [
         {
           "name": "<init>",
@@ -3362,7 +3362,7 @@
       ]
     },
     {
-      "type": "line_sitter.platform$eval548",
+      "type": "line_breaker.platform$eval548",
       "methods": [
         {
           "name": "<init>",
@@ -3371,7 +3371,7 @@
       ]
     },
     {
-      "type": "line_sitter.platform$eval550",
+      "type": "line_breaker.platform$eval550",
       "methods": [
         {
           "name": "<init>",
@@ -3380,7 +3380,7 @@
       ]
     },
     {
-      "type": "line_sitter.platform$eval554",
+      "type": "line_breaker.platform$eval554",
       "methods": [
         {
           "name": "<init>",
@@ -3389,7 +3389,7 @@
       ]
     },
     {
-      "type": "line_sitter.platform$library_extension",
+      "type": "line_breaker.platform$library_extension",
       "methods": [
         {
           "name": "<init>",
@@ -3398,13 +3398,13 @@
       ]
     },
     {
-      "type": "line_sitter.platform__init"
+      "type": "line_breaker.platform__init"
     },
     {
-      "type": "line_sitter.treesitter.NativeLoader"
+      "type": "line_breaker.treesitter.NativeLoader"
     },
     {
-      "type": "line_sitter.treesitter.language$eval540",
+      "type": "line_breaker.treesitter.language$eval540",
       "methods": [
         {
           "name": "<init>",
@@ -3413,7 +3413,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$eval542",
+      "type": "line_breaker.treesitter.language$eval542",
       "methods": [
         {
           "name": "<init>",
@@ -3422,7 +3422,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$eval546",
+      "type": "line_breaker.treesitter.language$eval546",
       "methods": [
         {
           "name": "<init>",
@@ -3431,7 +3431,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$eval563",
+      "type": "line_breaker.treesitter.language$eval563",
       "methods": [
         {
           "name": "<init>",
@@ -3440,7 +3440,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$extract_resource_to_temp",
+      "type": "line_breaker.treesitter.language$extract_resource_to_temp",
       "methods": [
         {
           "name": "<init>",
@@ -3449,7 +3449,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$find_in_library_path",
+      "type": "line_breaker.treesitter.language$find_in_library_path",
       "methods": [
         {
           "name": "<init>",
@@ -3458,7 +3458,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$find_library_path",
+      "type": "line_breaker.treesitter.language$find_library_path",
       "methods": [
         {
           "name": "<init>",
@@ -3467,7 +3467,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$fn__586",
+      "type": "line_breaker.treesitter.language$fn__586",
       "methods": [
         {
           "name": "<init>",
@@ -3476,7 +3476,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$get_env_lib_path",
+      "type": "line_breaker.treesitter.language$get_env_lib_path",
       "methods": [
         {
           "name": "<init>",
@@ -3485,7 +3485,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$get_native_loader_path",
+      "type": "line_breaker.treesitter.language$get_native_loader_path",
       "methods": [
         {
           "name": "<init>",
@@ -3494,7 +3494,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$library_name",
+      "type": "line_breaker.treesitter.language$library_name",
       "methods": [
         {
           "name": "<init>",
@@ -3503,7 +3503,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$load_clojure_language",
+      "type": "line_breaker.treesitter.language$load_clojure_language",
       "methods": [
         {
           "name": "<init>",
@@ -3512,7 +3512,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language$load_clojure_language_STAR_",
+      "type": "line_breaker.treesitter.language$load_clojure_language_STAR_",
       "methods": [
         {
           "name": "<init>",
@@ -3521,10 +3521,10 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.language__init"
+      "type": "line_breaker.treesitter.language__init"
     },
     {
-      "type": "line_sitter.treesitter.node$children",
+      "type": "line_breaker.treesitter.node$children",
       "methods": [
         {
           "name": "<init>",
@@ -3533,7 +3533,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$eval503",
+      "type": "line_breaker.treesitter.node$eval503",
       "methods": [
         {
           "name": "<init>",
@@ -3542,7 +3542,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$eval505",
+      "type": "line_breaker.treesitter.node$eval505",
       "methods": [
         {
           "name": "<init>",
@@ -3551,7 +3551,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$eval509",
+      "type": "line_breaker.treesitter.node$eval509",
       "methods": [
         {
           "name": "<init>",
@@ -3560,7 +3560,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$named_children",
+      "type": "line_breaker.treesitter.node$named_children",
       "methods": [
         {
           "name": "<init>",
@@ -3569,7 +3569,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$next_named_sibling",
+      "type": "line_breaker.treesitter.node$next_named_sibling",
       "methods": [
         {
           "name": "<init>",
@@ -3578,7 +3578,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$node_line_range",
+      "type": "line_breaker.treesitter.node$node_line_range",
       "methods": [
         {
           "name": "<init>",
@@ -3587,7 +3587,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$node_parent",
+      "type": "line_breaker.treesitter.node$node_parent",
       "methods": [
         {
           "name": "<init>",
@@ -3596,7 +3596,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$node_position",
+      "type": "line_breaker.treesitter.node$node_position",
       "methods": [
         {
           "name": "<init>",
@@ -3605,7 +3605,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$node_range",
+      "type": "line_breaker.treesitter.node$node_range",
       "methods": [
         {
           "name": "<init>",
@@ -3614,7 +3614,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$node_text",
+      "type": "line_breaker.treesitter.node$node_text",
       "methods": [
         {
           "name": "<init>",
@@ -3623,7 +3623,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$node_type",
+      "type": "line_breaker.treesitter.node$node_type",
       "methods": [
         {
           "name": "<init>",
@@ -3632,7 +3632,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$optional__GT_node",
+      "type": "line_breaker.treesitter.node$optional__GT_node",
       "methods": [
         {
           "name": "<init>",
@@ -3641,7 +3641,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node$root_node",
+      "type": "line_breaker.treesitter.node$root_node",
       "methods": [
         {
           "name": "<init>",
@@ -3650,10 +3650,10 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.node__init"
+      "type": "line_breaker.treesitter.node__init"
     },
     {
-      "type": "line_sitter.treesitter.parser$eval532",
+      "type": "line_breaker.treesitter.parser$eval532",
       "methods": [
         {
           "name": "<init>",
@@ -3662,7 +3662,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$eval534",
+      "type": "line_breaker.treesitter.parser$eval534",
       "methods": [
         {
           "name": "<init>",
@@ -3671,7 +3671,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$eval538",
+      "type": "line_breaker.treesitter.parser$eval538",
       "methods": [
         {
           "name": "<init>",
@@ -3680,7 +3680,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$eval589",
+      "type": "line_breaker.treesitter.parser$eval589",
       "methods": [
         {
           "name": "<init>",
@@ -3689,7 +3689,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$eval598",
+      "type": "line_breaker.treesitter.parser$eval598",
       "methods": [
         {
           "name": "<init>",
@@ -3698,7 +3698,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$eval600",
+      "type": "line_breaker.treesitter.parser$eval600",
       "methods": [
         {
           "name": "<init>",
@@ -3707,7 +3707,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$parse_source",
+      "type": "line_breaker.treesitter.parser$parse_source",
       "methods": [
         {
           "name": "<init>",
@@ -3716,7 +3716,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser$with_parser",
+      "type": "line_breaker.treesitter.parser$with_parser",
       "methods": [
         {
           "name": "<init>",
@@ -3725,7 +3725,7 @@
       ]
     },
     {
-      "type": "line_sitter.treesitter.parser__init"
+      "type": "line_breaker.treesitter.parser__init"
     },
     {
       "type": "long[]"
@@ -3930,58 +3930,58 @@
       "glob": "data_readers.cljc"
     },
     {
-      "glob": "line_sitter/check.clj"
+      "glob": "line_breaker/check.clj"
     },
     {
-      "glob": "line_sitter/check__init.class"
+      "glob": "line_breaker/check__init.class"
     },
     {
-      "glob": "line_sitter/cli.clj"
+      "glob": "line_breaker/cli.clj"
     },
     {
-      "glob": "line_sitter/cli__init.class"
+      "glob": "line_breaker/cli__init.class"
     },
     {
-      "glob": "line_sitter/config.clj"
+      "glob": "line_breaker/config.clj"
     },
     {
-      "glob": "line_sitter/config__init.class"
+      "glob": "line_breaker/config__init.class"
     },
     {
-      "glob": "line_sitter/fix.clj"
+      "glob": "line_breaker/fix.clj"
     },
     {
-      "glob": "line_sitter/fix__init.class"
+      "glob": "line_breaker/fix__init.class"
     },
     {
-      "glob": "line_sitter/main.clj"
+      "glob": "line_breaker/main.clj"
     },
     {
-      "glob": "line_sitter/main__init.class"
+      "glob": "line_breaker/main__init.class"
     },
     {
-      "glob": "line_sitter/platform.clj"
+      "glob": "line_breaker/platform.clj"
     },
     {
-      "glob": "line_sitter/platform__init.class"
+      "glob": "line_breaker/platform__init.class"
     },
     {
-      "glob": "line_sitter/treesitter/language.clj"
+      "glob": "line_breaker/treesitter/language.clj"
     },
     {
-      "glob": "line_sitter/treesitter/language__init.class"
+      "glob": "line_breaker/treesitter/language__init.class"
     },
     {
-      "glob": "line_sitter/treesitter/node.clj"
+      "glob": "line_breaker/treesitter/node.clj"
     },
     {
-      "glob": "line_sitter/treesitter/node__init.class"
+      "glob": "line_breaker/treesitter/node__init.class"
     },
     {
-      "glob": "line_sitter/treesitter/parser.clj"
+      "glob": "line_breaker/treesitter/parser.clj"
     },
     {
-      "glob": "line_sitter/treesitter/parser__init.class"
+      "glob": "line_breaker/treesitter/parser__init.class"
     },
     {
       "glob": "native/darwin-x86_64/libtree-sitter-clojure.dylib"
