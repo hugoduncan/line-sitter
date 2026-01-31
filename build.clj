@@ -1,6 +1,7 @@
 (ns build
   "Build configuration for line-sitter."
   (:require
+   [babashka.process :as p]
    [clojure.tools.build.api :as b]))
 
 (def lib 'io.github.hugoduncan/line-sitter)
@@ -43,3 +44,27 @@
            :basis (b/create-basis {:project "deps.edn"
                                    :aliases [:native]})
            :main 'line-sitter.main}))
+
+(defn- find-native-image
+  "Find native-image executable in GRAALVM_HOME, JAVA_HOME, or PATH."
+  []
+  (let [graalvm-home (System/getenv "GRAALVM_HOME")
+        java-home (System/getenv "JAVA_HOME")]
+    (cond
+      graalvm-home (str graalvm-home "/bin/native-image")
+      java-home (str java-home "/bin/native-image")
+      :else "native-image")))
+
+(defn native-image
+  "Build native executable using GraalVM native-image.
+  Requires GraalVM 25+ with native-image installed.
+  Set GRAALVM_HOME or JAVA_HOME to the GraalVM installation directory."
+  [_]
+  (uber nil)
+  (println "Building native image...")
+  (let [native-image-cmd (find-native-image)
+        result (p/shell {:out :inherit :err :inherit}
+                        native-image-cmd "-jar" uber-file
+                        "-o" "target/line-breaker")]
+    (when (zero? (:exit result))
+      (println "Native image built: target/line-breaker"))))

@@ -27,7 +27,8 @@
    :main-opts   ["-m" "kaocha.runner"]}
 
   :build
-  {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.5"}}
+  {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.5"}
+                babashka/process {:mvn/version "0.5.22"}}
    :jvm-opts   ["--enable-native-access=ALL-UNNAMED"]
    :ns-default build}
 
