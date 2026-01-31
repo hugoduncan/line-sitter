@@ -41,7 +41,9 @@
   :fn - keep arg vector on first line
   :binding - keep binding vector on first line
   :if - keep test on first line
-  :case - keep test-expr on first line"
+  :case - keep test-expr on first line
+  :try - body on next line
+  :do - body on next line"
   {'defn            :defn
    'defn-           :defn
    'defmacro        :defn
@@ -66,7 +68,9 @@
    'when            :if
    'when-not        :if
    'when-first      :if
-   'case            :case})
+   'case            :case
+   'try             :try
+   'do              :do})
 
 (defn- get-head-symbol
   "Get the head symbol of a list_lit node as a symbol.
@@ -93,6 +97,7 @@
   :binding keeps 2 (head + binding vector)
   :if keeps 2 (head + test)
   :case keeps 2 (head + test-expr)
+  :try/:do keep 1 (body on next line)
   Default keeps 1 (head only)."
   [rule]
   (case rule

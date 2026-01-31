@@ -348,6 +348,38 @@
               result (fix/fix-source source {:line-length 12})]
           (is (= "(cond->\n  x\n  t1\n  f1\n  t2\n  f2)" result)))))
 
+    (testing "for try"
+      (testing "puts body on next line"
+        (let [source "(try expr catch)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(try\n  expr\n  catch)" result))))
+      (testing "handles multiple body expressions"
+        (let [source "(try a b c d)"
+              result (fix/fix-source source {:line-length 8})]
+          (is (= "(try\n  a\n  b\n  c\n  d)" result)))))
+
+    (testing "for do"
+      (testing "puts body on next line"
+        (let [source "(do expr1 expr2)"
+              result (fix/fix-source source {:line-length 10})]
+          (is (= "(do\n  expr1\n  expr2)" result))))
+      (testing "handles single body expression"
+        (let [source "(do expr)"
+              result (fix/fix-source source {:line-length 5})]
+          (is (= "(do\n  expr)" result)))))
+
+    (testing "for custom indent rule via config"
+      (testing "applies :try rule to custom form"
+        (let [source "(my-try a b c)"
+              config {:line-length 8 :indents {'my-try :try}}
+              result (fix/fix-source source config)]
+          (is (= "(my-try\n  a\n  b\n  c)" result))))
+      (testing "applies :do rule to custom form"
+        (let [source "(my-do a b)"
+              config {:line-length 6 :indents {'my-do :do}}
+              result (fix/fix-source source config)]
+          (is (= "(my-do\n  a\n  b)" result)))))
+
     (testing "for non-special forms"
       (testing "breaks all elements"
         (let [source "(foo bar baz)"
