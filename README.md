@@ -53,9 +53,9 @@ line-breaker --stdout src/myfile.clj
 
 ## Behavior
 
-line-breaker is opinionated: it makes formatting decisions rather than
-preserving your original style. When a line exceeds the limit,
-line-breaker reformats it according to its rules.
+When a line exceeds the limit, line-breaker reformats it according to
+its rules.  line-breaker is opinionated: the way it breaks lines is not
+configurable.
 
 ### Breaking Strategy
 
@@ -95,6 +95,18 @@ and `when` use 2-space indentation.
 
 Only lines exceeding the limit are reformatted. Short lines remain
 untouched, preserving your formatting choices where possible.
+
+### Ignoring Forms
+
+Use `#_:line-breaker/ignore` before a form to prevent line-breaker from
+reformatting it:
+
+```clojure
+#_:line-breaker/ignore
+(this-form will-not-be-reformatted even-if-it-exceeds the-line-limit)
+```
+
+The marker also protects nested forms within the ignored form.
 
 ## Configuration
 
