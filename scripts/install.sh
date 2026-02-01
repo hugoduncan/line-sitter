@@ -155,9 +155,26 @@ backup_binary() {
   fi
 }
 
+check_install_dir() {
+  # Create install directory if it doesn't exist
+  if [[ ! -d "$INSTALL_DIR" ]]; then
+    if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
+      die "Cannot create directory: $INSTALL_DIR (permission denied)"
+    fi
+  fi
+
+  # Check if directory is writable
+  if [[ ! -w "$INSTALL_DIR" ]]; then
+    die "Cannot write to $INSTALL_DIR (permission denied). Try running with sudo."
+  fi
+}
+
 install_binary() {
   local platform version binary_name binary_url checksum_url
   local tmp_binary tmp_checksum install_path
+
+  # Check permissions early before starting downloads
+  check_install_dir
 
   platform=$(detect_platform)
   echo "Detected platform: $platform"
@@ -183,12 +200,6 @@ install_binary() {
   verify_checksum "$tmp_binary" "$tmp_checksum"
 
   install_path="${INSTALL_DIR}/${BINARY_NAME}"
-
-  # Create install directory if it doesn't exist
-  if [[ ! -d "$INSTALL_DIR" ]]; then
-    echo "Creating directory: $INSTALL_DIR"
-    mkdir -p "$INSTALL_DIR"
-  fi
 
   backup_binary "$install_path"
 
