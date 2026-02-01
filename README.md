@@ -50,3 +50,75 @@ Output fixed content to stdout (leaves original file unchanged):
 ```bash
 line-breaker --stdout src/myfile.clj
 ```
+
+## Behavior
+
+line-breaker is opinionated: it makes formatting decisions rather than
+preserving your original style. When a line exceeds the limit,
+line-breaker reformats it according to its rules.
+
+### Breaking Strategy
+
+line-breaker breaks outer forms before inner ones, keeping code towards
+the left margin rather than letting it pile up on the right.
+
+Before:
+```clojure
+(defn foo [x] (let [y (+ x 1)] (when (pos? y) (println y))))
+```
+
+After (at 40 columns):
+```clojure
+(defn foo
+  [x]
+  (let [y (+ x 1)]
+    (when (pos? y) (println y))))
+```
+
+### Indentation
+
+Function calls use 1-space indentation; body forms like `defn`, `let`,
+and `when` use 2-space indentation.
+
+```clojure
+;; Function call: 1-space indent
+(some-fn arg1
+ arg2
+ arg3)
+
+;; Body form: 2-space indent
+(let [x 1]
+  (println x))
+```
+
+### Selective Processing
+
+Only lines exceeding the limit are reformatted. Short lines remain
+untouched, preserving your formatting choices where possible.
+
+## Configuration
+
+### CLI Options
+
+- `--line-length N` — Maximum line length (default: 80)
+- `-q, --quiet` — Suppress summary output
+
+```bash
+line-breaker --line-length 100 --check src/
+```
+
+### Config File
+
+Create `.line-breaker.edn` in your project root:
+
+```clojure
+{:line-length 100
+ :extensions [".clj" ".cljs"]
+ :indents {my-defn :defn}}
+```
+
+- `:line-length` — Maximum line length (default: 80)
+- `:extensions` — File extensions to process (default: `[".clj" ".cljs" ".cljc" ".edn"]`)
+- `:indents` — Custom indent rules mapping symbols to rule types (`:defn`, `:binding`, `:do`, etc.)
+
+CLI options override config file values, which override defaults.
