@@ -310,13 +310,15 @@
 
 (defn- indent-column
   "Calculate the indent column for broken elements.
-  :binding-vector uses +1 (align to first element after bracket).
-  All other forms use +2 (standard Clojure indentation)."
+  - :binding-vector uses +1 (align to first element after bracket)
+  - Forms with an indent rule use +2 (standard Clojure body indentation)
+  - Plain function calls and data structures use +1 (align to first element)"
   [node rule]
   (let [base-col (form-start-column node)]
-    (if (= :binding-vector rule)
-      (+ 1 base-col)
-      (+ 2 base-col))))
+    (cond
+      (= :binding-vector rule) (+ 1 base-col)
+      (some? rule)             (+ 2 base-col)
+      :else                    (+ 1 base-col))))
 
 (defn break-form
   "Generate edits to break a form across multiple lines.
@@ -391,7 +393,8 @@
 
   Takes a source string and config map with :line-length. Iteratively breaks
   forms until all lines fit or only unbreakable atoms remain. Returns the
-  fixed source string. Forms preceded by #_:line-breaker/ignore are not modified.
+  fixed source string. Forms preceded by #_:line-breaker/ignore are not
+  modified.
 
   The algorithm:
   1. Find lines exceeding max-length
