@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-13
+          - os: macos-latest
             artifact: ${{ needs.build.outputs.darwin-artifact }}
           - os: ubuntu-latest
             artifact: ${{ needs.build.outputs.linux-artifact }}

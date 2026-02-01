@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-13
+          - os: macos-latest
             platform: darwin-x86_64
           - os: ubuntu-latest
             platform: linux-x86_64
@@ -52,10 +52,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup GraalVM
+      - name: Setup GraalVM x86_64 (macOS cross-build)
+        if: matrix.os == 'macos-latest'
+        run: |
+          set -e
+          echo "Installing x86_64 GraalVM 25 for cross-compilation..."
+          GRAALVM_URL="https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_macos-x64_bin.tar.gz"
+          mkdir -p /tmp/graalvm-x86_64
+          curl -sL "$GRAALVM_URL" | tar -xz -C /tmp/graalvm-x86_64 --strip-components=1
+          echo "GRAALVM_HOME=/tmp/graalvm-x86_64/Contents/Home" >> $GITHUB_ENV
+          echo "JAVA_HOME=/tmp/graalvm-x86_64/Contents/Home" >> $GITHUB_ENV
+
+      - name: Setup GraalVM (Linux)
+        if: matrix.os == 'ubuntu-latest'
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '23'
+          java-version: '25'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -78,7 +90,12 @@ jobs:
       - name: Build native tree-sitter libraries
         run: bb build-native
 
-      - name: Build native image
+      - name: Build native image (macOS x86_64)
+        if: matrix.os == 'macos-latest'
+        run: arch -x86_64 clojure -T:build native-image
+
+      - name: Build native image (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: clojure -T:build native-image
 
       - name: Test binary
