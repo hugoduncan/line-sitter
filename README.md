@@ -51,6 +51,9 @@ Output fixed content to stdout (leaves original file unchanged):
 line-breaker --stdout src/myfile.clj
 ```
 
+Paths can be files or directories. When given a directory, all matching
+files are processed recursively.
+
 ## Behavior
 
 When a line exceeds the limit, line-breaker reformats it according to
