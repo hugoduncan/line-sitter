@@ -689,3 +689,195 @@
       (testing "leaves properly broken defn unchanged"
         (let [source "(defn foo\n  [x]\n  (+ x 1))"]
           (is (= source (fix/fix-source source {:line-length 80}))))))))
+
+(deftest atomic-literal-integrity-test
+  ;; Verify atomic literals (strings, etc.) are never broken internally.
+  ;; Breaks should occur between form elements, not inside literals.
+  ;; Tests the contract that strings remain intact after line breaking.
+  (testing "multiple short strings exceeding line length"
+    (testing "breaks between strings, not inside them"
+      ;; Four 5-char strings in a vector: each fits, but total exceeds 40 chars
+      (let [source "(vector \"abc\" \"def\" \"ghi\" \"jkl\")"
+            result (fix/fix-source source {:line-length 20})]
+        (is (str/includes? result "\"abc\"")
+            "first string remains intact")
+        (is (str/includes? result "\"def\"")
+            "second string remains intact")
+        (is (str/includes? result "\"ghi\"")
+            "third string remains intact")
+        (is (str/includes? result "\"jkl\"")
+            "fourth string remains intact")))
+
+    (testing "handles strings at beginning position"
+      (let [source "(\"first\" a b c)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"first\"")
+            "string at beginning remains intact")))
+
+    (testing "handles strings at middle position"
+      (let [source "(a \"mid\" b c)"
+            result (fix/fix-source source {:line-length 8})]
+        (is (str/includes? result "\"mid\"")
+            "string in middle remains intact")))
+
+    (testing "handles strings at end position"
+      (let [source "(a b c \"last\")"
+            result (fix/fix-source source {:line-length 8})]
+        (is (str/includes? result "\"last\"")
+            "string at end remains intact")))
+
+    (testing "handles mixed strings and other elements"
+      (let [source "(fn \"s1\" :k1 \"s2\" sym)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "\"s1\"")
+            "first string remains intact")
+        (is (str/includes? result "\"s2\"")
+            "second string remains intact"))))
+
+  (testing "strings with special characters"
+    (testing "preserves escaped quotes within strings"
+      (let [source "(f \"say \\\"hi\\\"\" x)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"say \\\"hi\\\"\"")
+            "string with escaped quotes remains intact")))
+
+    (testing "preserves escaped newlines within strings"
+      (let [source "(f \"line1\\nline2\" x)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"line1\\nline2\"")
+            "string with escaped newline remains intact")))
+
+    (testing "preserves escaped tabs within strings"
+      (let [source "(f \"col1\\tcol2\" x)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"col1\\tcol2\"")
+            "string with escaped tab remains intact")))
+
+    (testing "preserves multiple escape sequences"
+      (let [source "(f \"a\\\"b\\nc\\td\" x)"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"a\\\"b\\nc\\td\"")
+            "string with mixed escapes remains intact"))))
+
+  (testing "regex literals"
+    (testing "preserves simple regex pattern"
+      (let [source "(re-find #\"abc\" s)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "#\"abc\"")
+            "simple regex remains intact")))
+
+    (testing "preserves regex with quantifiers"
+      (let [source "(re-find #\"\\d+\" text)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "#\"\\d+\"")
+            "regex with quantifier remains intact")))
+
+    (testing "preserves regex with alternation"
+      (let [source "(re-find #\"a|b\" text)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "#\"a|b\"")
+            "regex with alternation remains intact")))
+
+    (testing "handles multiple regex in form"
+      (let [source "(or (re-find #\"foo\" x) (re-find #\"bar\" x))"
+            result (fix/fix-source source {:line-length 25})]
+        (is (str/includes? result "#\"foo\"")
+            "first regex remains intact")
+        (is (str/includes? result "#\"bar\"")
+            "second regex remains intact"))))
+
+  (testing "character literals"
+    (testing "preserves simple character literal"
+      (let [source "(conj chars \\a \\b \\c)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "\\a")
+            "character \\a remains intact")
+        (is (str/includes? result "\\b")
+            "character \\b remains intact")
+        (is (str/includes? result "\\c")
+            "character \\c remains intact")))
+
+    (testing "preserves named character literals"
+      (let [source "(list \\newline \\space)"
+            result (fix/fix-source source {:line-length 14})]
+        (is (str/includes? result "\\newline")
+            "newline character remains intact")
+        (is (str/includes? result "\\space")
+            "space character remains intact")))
+
+    (testing "handles mixed character and string literals"
+      (let [source "(vector \\a \"str\" \\b)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "\\a")
+            "character literal remains intact")
+        (is (str/includes? result "\"str\"")
+            "string literal remains intact")
+        (is (str/includes? result "\\b")
+            "second character literal remains intact"))))
+
+  (testing "line length boundary conditions"
+    (testing "string ending exactly at line limit"
+      ;; "(x \"abcd\")" is exactly 10 chars - stays intact at limit 10
+      (let [source "(x \"abcd\")"
+            result (fix/fix-source source {:line-length 10})]
+        (is (= source result)
+            "form fitting exactly at limit stays on one line")))
+
+    (testing "string starting one char before limit"
+      ;; "(abcdefg \"s\")" is 13 chars; at limit 10, break is needed
+      ;; The string starts near the boundary
+      (let [source "(abcdefg \"s\")"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"s\"")
+            "string remains intact even when starting near boundary")))
+
+    (testing "multiple small atoms fitting exactly on limit"
+      ;; "[a b c d]" is exactly 9 chars - at limit 9, no break needed
+      (let [source "[a b c d]"
+            result (fix/fix-source source {:line-length 9})]
+        (is (= source result)
+            "atoms fitting exactly at limit stay on one line")))
+
+    (testing "multiple strings totaling exactly line limit"
+      ;; "(\"ab\" \"cd\")" is exactly 12 chars
+      (let [source "(\"ab\" \"cd\")"
+            result (fix/fix-source source {:line-length 12})]
+        (is (= source result)
+            "strings totaling exactly limit stay on one line")))
+
+    (testing "mixed atoms at exact boundary with keyword"
+      ;; "(:k \"ab\" 1)" is exactly 11 chars
+      (let [source "(:k \"ab\" 1)"
+            result (fix/fix-source source {:line-length 11})]
+        (is (= source result)
+            "mixed atoms at exact limit stay on one line")))
+
+    (testing "one char over boundary forces break"
+      ;; "(:k \"abc\" 1)" is 12 chars; at limit 11 needs break
+      (let [source "(:k \"abc\" 1)"
+            result (fix/fix-source source {:line-length 11})]
+        (is (not= source result)
+            "one char over limit triggers break")
+        (is (str/includes? result "\"abc\"")
+            "string remains intact after break")))
+
+    (testing "string at boundary with symbol"
+      ;; Form where string would be broken if not atomic
+      (let [source "(sym \"boundary\")"
+            result (fix/fix-source source {:line-length 10})]
+        (is (str/includes? result "\"boundary\"")
+            "string near boundary remains intact")))
+
+    (testing "regex at exact boundary"
+      ;; "(re #\"ab\")" is exactly 10 chars
+      (let [source "(re #\"ab\")"
+            result (fix/fix-source source {:line-length 10})]
+        (is (= source result)
+            "regex fitting exactly at limit stays on one line")))
+
+    (testing "character literal at boundary"
+      ;; "(f \\a \\b)" is exactly 9 chars
+      (let [source "(f \\a \\b)"
+            result (fix/fix-source source {:line-length 9})]
+        (is (= source result)
+            "character literals at exact limit stay on one line")))))
