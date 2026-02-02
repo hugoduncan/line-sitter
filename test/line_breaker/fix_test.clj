@@ -757,4 +757,60 @@
       (let [source "(f \"a\\\"b\\nc\\td\" x)"
             result (fix/fix-source source {:line-length 10})]
         (is (str/includes? result "\"a\\\"b\\nc\\td\"")
-            "string with mixed escapes remains intact")))))
+            "string with mixed escapes remains intact"))))
+
+  (testing "regex literals"
+    (testing "preserves simple regex pattern"
+      (let [source "(re-find #\"abc\" s)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "#\"abc\"")
+            "simple regex remains intact")))
+
+    (testing "preserves regex with quantifiers"
+      (let [source "(re-find #\"\\d+\" text)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "#\"\\d+\"")
+            "regex with quantifier remains intact")))
+
+    (testing "preserves regex with alternation"
+      (let [source "(re-find #\"a|b\" text)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "#\"a|b\"")
+            "regex with alternation remains intact")))
+
+    (testing "handles multiple regex in form"
+      (let [source "(or (re-find #\"foo\" x) (re-find #\"bar\" x))"
+            result (fix/fix-source source {:line-length 25})]
+        (is (str/includes? result "#\"foo\"")
+            "first regex remains intact")
+        (is (str/includes? result "#\"bar\"")
+            "second regex remains intact"))))
+
+  (testing "character literals"
+    (testing "preserves simple character literal"
+      (let [source "(conj chars \\a \\b \\c)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "\\a")
+            "character \\a remains intact")
+        (is (str/includes? result "\\b")
+            "character \\b remains intact")
+        (is (str/includes? result "\\c")
+            "character \\c remains intact")))
+
+    (testing "preserves named character literals"
+      (let [source "(list \\newline \\space)"
+            result (fix/fix-source source {:line-length 14})]
+        (is (str/includes? result "\\newline")
+            "newline character remains intact")
+        (is (str/includes? result "\\space")
+            "space character remains intact")))
+
+    (testing "handles mixed character and string literals"
+      (let [source "(vector \\a \"str\" \\b)"
+            result (fix/fix-source source {:line-length 12})]
+        (is (str/includes? result "\\a")
+            "character literal remains intact")
+        (is (str/includes? result "\"str\"")
+            "string literal remains intact")
+        (is (str/includes? result "\\b")
+            "second character literal remains intact")))))
