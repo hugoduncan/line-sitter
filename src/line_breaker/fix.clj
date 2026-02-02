@@ -151,7 +151,8 @@
   Such forms need special handling when breaking: keep metadata + first
   content element together, indent to first content element's position."
   [node]
-  (metadata-node? (first (node/named-children node))))
+  (when-let [first-child (first (node/named-children node))]
+    (metadata-node? first-child)))
 
 (defn- elements-to-keep-on-first-line
   "Number of elements to keep on the first line based on indent rule.
