@@ -994,3 +994,48 @@
             "second multi-byte char preserved")
         (is (str/includes? result "ñ")
             "third multi-byte char preserved")))))
+
+(deftest type-hinted-forms-test
+  ;; Verify metadata/type hints stay attached to their annotated forms.
+  ;; Story 142: Type hints were incorrectly separated from arg vectors.
+  (testing "for type-hinted forms"
+    (testing "fn with type-hinted arg vector"
+      (testing "keeps type hint attached when breaking"
+        (let [source "(fn ^long [^int x ^int y] (+ x y))"
+              result (fix/fix-source source {:line-length 20})]
+          (is (str/includes? result "^long [")
+              "type hint stays attached to arg vector")
+          (is (not (str/includes? result "^long\n"))
+              "type hint not orphaned on separate line"))))
+
+    (testing "letfn with type-hinted functions"
+      (testing "keeps type hints attached in nested fn"
+        (let [source "(letfn [(f ^long [^int x] x)] (f 1))"
+              result (fix/fix-source source {:line-length 25})]
+          (is (str/includes? result "^long [")
+              "type hint stays attached in letfn function"))))
+
+    (testing "let binding with type hint"
+      (testing "keeps type hint attached to binding symbol"
+        (let [source "(let [^String s \"foo\"] s)"
+              result (fix/fix-source source {:line-length 20})]
+          (is (str/includes? result "^String s")
+              "type hint stays attached to binding symbol"))))
+
+    (testing "loop binding with type hint"
+      (testing "keeps type hint attached to binding symbol"
+        (let [source "(loop [^int i 0 ^int n 10] (recur (inc i) n))"
+              result (fix/fix-source source {:line-length 25})]
+          (is (str/includes? result "^int i")
+              "first type hint stays attached")
+          (is (str/includes? result "^int n")
+              "second type hint stays attached"))))
+
+    (testing "multiple metadata on same element"
+      (testing "keeps all metadata attached"
+        (let [source "(def ^:private ^:deprecated legacy-fn (fn [] nil))"
+              result (fix/fix-source source {:line-length 30})]
+          (is (str/includes? result "^:private ^:deprecated")
+              "multiple metadata items stay together")
+          (is (str/includes? result "^:deprecated legacy-fn")
+              "metadata stays attached to symbol"))))))
