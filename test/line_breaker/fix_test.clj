@@ -166,6 +166,15 @@
             edits (fix/break-form form)]
         (is (nil? edits))))
 
+    (testing "returns nil for metadata-only form (no content element)"
+      ;; Edge case: ^double [] has metadata but the inner vec is empty.
+      ;; tree-sitter parses this as vec_lit with only meta_lit as a child.
+      ;; break-form should return nil since there's no content to break.
+      (let [tree (parser/parse-source "^double []")
+            form (fix/find-breakable-form tree 1)
+            edits (fix/break-form form)]
+        (is (nil? edits))))
+
     (testing "preserves indentation based on form position"
       (let [source "  (a b c)"
             tree (parser/parse-source source)
